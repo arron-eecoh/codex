@@ -72,17 +72,26 @@ module.exports = async function(C){
   ok('(setup) timer running before the final check', C.fgTimer && C.fgTimer.running===true);
   check(2,2,2); await flush();
   ok('final check does NOT start a rest timer — it closes the leftover one', C.fgTimer===null);
-  ok('…and navigates to the star rating', hits[hits.length-1]==='rate');
-  // tapping a star navigates on to Complete Session
+  ok('…and navigates to the feel sliders', hits[hits.length-1]==='rate');
+  // sliding a feel slider navigates on to Complete Session
   hits=[];
-  C.forgeOnClick({target:{closest:q=>q==='[data-fgrate]'?{dataset:{fgrate:'4'}}:null}});
+  C.forgeOnInput({target:{dataset:{fgfeel:'phys'},value:'4'}});
+  ok('body slider records physical effort', C.fgState().active.feelPhys===4);
+  C.forgeOnChange({target:{dataset:{fgfeel:'phys'},value:'4'}});
   await flush();
-  ok('star tap records the rating', C.fgState().active.rating===4);
-  ok('…and navigates to the Complete Session button', hits[hits.length-1]==='complete');
+  ok('…and slider release navigates to the Complete Session button', hits[hits.length-1]==='complete');
+  // tap-in-place (no drag) commits the slider's current value via the click path
+  C.forgeOnClick({target:{closest:q=>q==='[data-fgfeel]'?{dataset:{fgfeel:'mind'},value:'2'}:null}});
+  ok('tapping a slider without dragging still commits its value', C.fgState().active.feelMind===2);
+  // completing stores both feels + mirrors rating=physical for old clients/history
+  await C.forgeComplete();
+  const rec=C.fgState().sessions[C.fgState().sessions.length-1];
+  ok('completed session stores feelPhys/feelMind and legacy rating mirror', rec.feelPhys===4 && rec.feelMind===2 && rec.rating===4);
   // mid-session rating never scrolls
   C.s=baseState(); await C.forgeStart('Leg A'); C.renderForgeSession();
   hits=[]; global.__els['fgRateRow']={scrollIntoView:()=>hits.push('rate')}; global.__els['fgComplete']={scrollIntoView:()=>hits.push('complete')};
-  C.forgeOnClick({target:{closest:q=>q==='[data-fgrate]'?{dataset:{fgrate:'3'}}:null}});
+  C.forgeOnInput({target:{dataset:{fgfeel:'mind'},value:'3'}});
+  C.forgeOnChange({target:{dataset:{fgfeel:'mind'},value:'3'}});
   await flush();
   ok('rating mid-workout does not yank the view', hits.length===0);
   // voice: "log the block" on the FINAL block ends the workout, no timer
@@ -91,7 +100,7 @@ module.exports = async function(C){
   A2.blocks[1].exercises.forEach(e=>e.sets.forEach(st=>{ st.done=true; }));
   C.fgTimerClose&&C.fgTimerClose();
   const sayF=C.vxExec(C.vxParse('log the block'));
-  ok('voice-finishing the last block: no rest timer, invites the rating', C.fgTimer===null && /whole session/.test(sayF) && /star rating/.test(sayF));
+  ok('voice-finishing the last block: no rest timer, invites the rating', C.fgTimer===null && /whole session/.test(sayF) && /how it felt/.test(sayF));
 
   // ---- collapsible blocks ----
   C.s=baseState(); await C.forgeStart('Leg A'); C.renderForgeSession();

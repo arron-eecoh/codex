@@ -40,7 +40,7 @@ module.exports = async function(C){
     complete:['character'],hold:['character'],slip:['character'],undo:['character'],edit:['character'],del:['character'],add:['skills','character'],
     qtrack:['quests'],steptoggle:null, qexpand:['quests'],qpin:['quests'],qdel:['quests'],addstep:['quests'],
     qkind:['quests'],qtpl:['quests'],qcount:['quests'],qcountadd:['quests'],qcheckinadd:['quests'],qtick:['quests'],
-    fgstart:['training'],fgvariant:['training'],fgcheckall:['training'],fgfill:['training'],fgexinfo:['training'],fgholdtimer:['training'],
+    fgstart:['training'],fgvariant:['training'],fgfeel:['training'],fgcheckall:['training'],fgfill:['training'],fgexinfo:['training'],fgholdtimer:['training'],
     fgtimer:['training'],fgvoice:['training'],fgvoicehelp:['training'],fgblocktoggle:['training'],fgbreak:['training'],fgactdone:['training'],fgacttimer:['training'],fgactivation:['training'],fgtimermin:['training'],fgtimermax:['training'],fgpreset:['training'],
     prototoggle:['training'],protowater:['training'],protodel:['training'],
     fuelquick:['training'],fueldel:['training'],
