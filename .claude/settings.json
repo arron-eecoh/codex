@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "Skill",
+      "mcp__github",
+      "mcp__Claude_Code_Remote"
+    ]
+  }
+}
