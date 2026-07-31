@@ -378,7 +378,7 @@
     .fg-w,.fg-r{min-height:44px}
     .fg-set-check{width:44px;height:44px}
     .fg-field input,.fg-field select{min-height:44px}
-    .fg-star{min-height:44px}
+    .fg-feel{min-height:44px}
     .fg-travel input,.fuel-search input,.fin-check input{width:20px;height:20px}
     /* Alchemy */
     .fuel-chip{min-height:44px}
@@ -392,7 +392,7 @@
     .proto-del{width:44px;height:44px}
     .proto-add .btn-solid{min-height:44px}
     /* kill tap-delay on the newer surfaces the original rule didn't list */
-    .fg-focus-btn,.fg-type,.fg-set-check,.fg-star,.fg-w,.fg-r,.fuel-chip,.fuel-entry-del,.fuel-coach-ask,.fuel-stepper button,.fs-arm,.proto-row,.proto-del,.iconbtn,.icon-btn,.suggest-chip,.fuel-primary,.fuel-wide,#alchemySeal,.fg-travel,.fuel-search,.train-sub button,[data-fgstart],[data-fgfocus],[data-prototoggle]{touch-action:manipulation}
+    .fg-focus-btn,.fg-type,.fg-set-check,.fg-feel,.fg-w,.fg-r,.fuel-chip,.fuel-entry-del,.fuel-coach-ask,.fuel-stepper button,.fs-arm,.proto-row,.proto-del,.iconbtn,.icon-btn,.suggest-chip,.fuel-primary,.fuel-wide,#alchemySeal,.fg-travel,.fuel-search,.train-sub button,[data-fgstart],[data-fgfocus],[data-prototoggle]{touch-action:manipulation}
   }
   @media(max-width:380px){
     .pillars{grid-template-columns:1fr 1fr}
@@ -634,8 +634,12 @@
   .fg-field input:focus,.fg-field select:focus{outline:none;border-color:var(--ember)}
   .fg-row2{display:flex;gap:9px} .fg-row2 .fg-field{flex:1}
   .fg-circuit-info{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--ink-dim);margin-bottom:11px}
-  .fg-stars{display:flex;gap:6px} .fg-star{flex:1;padding:9px 0;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink-faint);font-size:18px}
-  .fg-star.on{background:rgba(224,118,60,.14);border-color:var(--ember);color:var(--ember)}
+  .fg-feel-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+  .fg-feel-lab{flex:0 0 66px;font-size:12.5px;color:var(--ink-dim)}
+  .fg-feel{flex:1;min-width:0;min-height:34px;accent-color:var(--ember)}
+  .fg-feel-val{flex:0 0 96px;text-align:right;font-size:11.5px;color:var(--ink-faint)}
+  .fg-feel-row.set .fg-feel-val{color:var(--ember)}
+  .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
   .fg-week{background:var(--panel);border:1px solid rgba(217,164,65,.34);border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
   .fg-week-n{font-size:30px;font-weight:700;font-family:'Cinzel',serif;color:var(--ember)}
   .fg-week-lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-top:2px}
@@ -2448,7 +2452,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.07.31-r455';
+const BUILD='2026.07.31-r456';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3890,7 +3894,7 @@ function fgCheckedCount(a){ if(!a||a.kind!=='lift'||!a.blocks) return null; let 
 async function forgeStart(key){ const f=fgState();
   if(f.active){ if(f.active.type===key){ f.screen='session'; commit(); return; } const _ck=fgCheckedCount(f.active); if(_ck>0){ const ok=await uiConfirm('You have an in-progress '+f.active.type+' with '+_ck+' set'+(_ck===1?'':'s')+' checked. Discard it and start '+key+'? (Or Resume it from the picker to keep it.)','Discard & start'); if(!ok) return; } }
   const def=fgTypeDef(key), t=today();
-  const a={ type:key, kind:def.kind, date:t, rating:0, note:'' };
+  const a={ type:key, kind:def.kind, date:t, rating:0, feelPhys:null, feelMind:null, note:'' };
   if(def.kind==='lift'){ const src=f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key];
     const defs=src.blocks.reduce((acc,b)=>acc.concat(b.exercises),[]); const sugg=forgeSuggest(f.log,defs);
     a.activation=src.activation;
@@ -3913,7 +3917,7 @@ async function forgeComplete(){ const f=fgState(), a=f.active; if(!a) return; co
   else if(a.kind==='cardio'){ detail=a.mode; metrics=(a.mode==='Sprints'?[a.intervals&&a.intervals+' intervals',a.surface].filter(Boolean).join(' '):[a.dist&&a.dist+'km',a.time&&a.time+'min',a.mode==='Ruck'&&a.weight&&a.weight+'lb',a.route].filter(Boolean).join(' ')); }
   else if(a.kind==='sport'){ detail=a.sport; metrics=(a.duration?a.duration+'min':''); }
   else if(a.kind==='recovery'){ detail=a.mode; metrics=(a.duration?a.duration+'min':''); }
-  f.sessions.push({ id:sid, date:t, type:a.type, kind:a.kind, focus:f.focus, detail, metrics, rating:a.rating||0, note:a.note||'' });
+  f.sessions.push({ id:sid, date:t, type:a.type, kind:a.kind, focus:f.focus, detail, metrics, rating:(a.feelPhys!=null?a.feelPhys:(a.rating||0)), feelPhys:(a.feelPhys!=null?a.feelPhys:null), feelMind:(a.feelMind!=null?a.feelMind:null), note:a.note||'' });
   f.history[t]=true; const streak=trainStreak(f.history), mult=streakMult(streak);
   const leveled = a.kind==='lift' && a.blocks.some(b=>b.exercises.some(e=>e.leveledUp && e.sets.some(s=>s.done)));
   const base=Math.round(25*mult*(leveled?1.2:1)); const fr=fortuneAward(base,'body');
@@ -4022,7 +4026,7 @@ function fgScrollNext(){
     setTimeout(()=>{ try{ let el;
       if(n) el=document.querySelector('[data-fgexanchor="'+n.bi+':'+n.ei+'"]');
       else { const a=fgState().active; if(!a) return;
-        el=a.rating?document.getElementById('fgComplete'):document.getElementById('fgRateRow'); }
+        el=fgRated(a)?document.getElementById('fgComplete'):document.getElementById('fgRateRow'); }
       if(!el) return;
       // center within the VISIBLE band — the bottom stack (timer+subtabs+nav) occludes the viewport
       if(el.getBoundingClientRect && typeof window!=='undefined' && window.scrollTo && window.innerHeight){
@@ -4058,7 +4062,7 @@ function vxExec(it){
     const fin=fgAllDone();
     if(fin){ fgTimerClose(); } else { fgBreakStart(); }
     renderForgeSession(); fgScrollNext(); Store.save(state);
-    return n.b.name+' done — '+count+' set'+(count===1?'':'s')+' checked. '+(fin?'That\u2019s the whole session — give it a star rating.':'Rest timer running.'); }
+    return n.b.name+' done — '+count+' set'+(count===1?'':'s')+' checked. '+(fin?'That\u2019s the whole session — slide how it felt, body and mind.':'Rest timer running.'); }
   if(it.t==='setnext'){ const n=vxNextUnchecked(); if(!n) return 'Everything is checked already.';
     n.e.sets[n.si].weight=String(it.weight); n.e.sets[n.si].reps=String(it.reps);
     vxLastEx={bi:n.bi,ei:n.ei}; renderForgeSession(); Store.save(state);
@@ -4272,13 +4276,14 @@ function forgeOnClick(e){ const f=fgState();
   const _ca=e.target.closest('[data-fgcheckall]'); if(_ca && f.active){ const cp=_ca.dataset.fgcheckall.split(':'); const ex=f.active.blocks[+cp[0]].exercises[+cp[1]]; const all=ex.sets.every(s=>s.done); ex.sets.forEach(s=>{ s.done=!all; }); renderForgeSession(); Store.save(state); return true; }
   const set=e.target.closest('[data-fgset]'); if(set && f.active){ if(fgTimer&&fgTimer.hold) fgTimer.hold=false;
     const p=set.dataset.fgset.split(':'); const bi=+p[0],ei=+p[1],si=+p[2]; const blk=f.active.blocks[bi]; const s=blk.exercises[ei].sets[si]; const was=s.done; s.done=!s.done; if(!was && s.done && fgRoundComplete(blk,si)){ if(fgAllDone()){ fgTimerClose(); } else { fgBreakStart(); } } renderForgeSession(); if(!was && s.done) fgScrollNext(); Store.save(state); return true; }
-  const rt=e.target.closest('[data-fgrate]'); if(rt && f.active){ f.active.rating=+rt.dataset.fgrate; renderForgeSession(); if(fgAllDone()) fgScrollNext(); Store.save(state); return true; }
+  const rt=e.target.closest('[data-fgfeel]'); if(rt && f.active){ const k=rt.dataset.fgfeel==='mind'?'feelMind':'feelPhys'; f.active[k]=fgFeelClamp(rt.value); renderForgeSession(); if(fgAllDone()) fgScrollNext(); Store.save(state); return true; }
   if(e.target.closest('#fgComplete')){ forgeComplete(); return true; }
   return false;
 }
 function forgeOnChange(e){ const f=fgState(), a=f.active, id=e.target.id;
   if(id==='fgTravel'){ f.travel=e.target.checked; commit(); return true; }
   if(!a) return false;
+  if(e.target.dataset&&e.target.dataset.fgfeel!=null){ renderForgeSession(); if(fgAllDone()) fgScrollNext(); Store.save(state); return true; }
   if(id==='fgCircuit'){ a.circuitName=e.target.value; renderForgeSession(); Store.save(state); return true; }
   if(id==='fgMode'){ a.mode=e.target.value; renderForgeSession(); Store.save(state); return true; }
   if(id==='fgSurface'){ a.surface=e.target.value; Store.save(state); return true; }
@@ -4288,12 +4293,26 @@ function forgeOnChange(e){ const f=fgState(), a=f.active, id=e.target.id;
   return false;
 }
 function forgeOnInput(e){ const f=fgState(), a=f.active, t=e.target; if(!a) return false;
+  if(t.dataset.fgfeel!=null){ const k=t.dataset.fgfeel==='mind'?'feelMind':'feelPhys'; a[k]=fgFeelClamp(t.value); fgFeelSync(t,a[k]); Store.save(state); return true; }
   if(t.dataset.fgw!=null){ const p=t.dataset.fgw.split(':'); a.blocks[+p[0]].exercises[+p[1]].sets[+p[2]].weight=t.value; Store.save(state); return true; }
   if(t.dataset.fgr!=null){ const p=t.dataset.fgr.split(':'); a.blocks[+p[0]].exercises[+p[1]].sets[+p[2]].reps=t.value; Store.save(state); return true; }
   const map={fgRounds:'rounds',fgDist:'dist',fgTime:'time',fgWeight:'weight',fgIntervals:'intervals',fgDuration:'duration',fgNote:'note'};
   if(map[t.id]!=null){ a[map[t.id]]=t.value; Store.save(state); return true; }
   return false;
 }
+
+/* ---- post-session feel sliders (0–5 physical + mental effort) ---- */
+const FG_FEEL_WORDS=['effortless','easy','steady','solid','hard','maxed out'];
+function fgFeelClamp(v){ v=Math.round(+v); if(!isFinite(v)) v=0; return Math.max(0,Math.min(5,v)); }
+function fgRated(a){ return a.feelPhys!=null || a.feelMind!=null || (a.rating||0)>0; }
+function fgFeelSlider(key,label,val){ const set=val!=null; const v=set?val:3;
+  return '<div class="fg-feel-row'+(set?' set':'')+'"><span class="fg-feel-lab">'+label+'</span>'
+    +'<input type="range" class="fg-feel" min="0" max="5" step="1" value="'+v+'" data-fgfeel="'+key+'" aria-label="'+label+' effort, 0 to 5">'
+    +'<span class="fg-feel-val">'+(set?(v+' · '+FG_FEEL_WORDS[v]):'slide to set')+'</span></div>'; }
+function fgFeelSync(t,v){ try{ const row=t.closest&&t.closest('.fg-feel-row'); if(!row) return;
+  row.classList.add('set'); const b=row.querySelector('.fg-feel-val'); if(b) b.textContent=v+' · '+FG_FEEL_WORDS[v]; }catch(e){} }
+function fgHistFeel(s){ if(s.feelPhys!=null||s.feelMind!=null) return [s.feelPhys!=null?'🔥'+s.feelPhys:null,s.feelMind!=null?'🧠'+s.feelMind:null].filter(Boolean).join(' ');
+  return s.rating?'★'.repeat(s.rating):''; }
 
 /* ---- renders ---- */
 function renderForge(){ const f=fgState(); if(!f.screen) f.screen='picker';
@@ -4355,7 +4374,7 @@ function renderForgeSession(){ _fgNextCache=null; const f=fgState(), a=f.active;
       h+='<div class="fg-field"><label>Route</label><select id="fgRoute" class="qsel">'+F_ROUTES.map(r=>'<option'+(a.route===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>'; }
   } else if(a.kind==='sport'){ h+='<div class="fg-field"><label>Sport</label><select id="fgSport" class="qsel">'+F_SPORTS.map(s=>'<option'+(a.sport===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="fg-field"><label>Duration (min)</label><input id="fgDuration" inputmode="numeric" value="'+esc(a.duration)+'"></div>';
   } else if(a.kind==='recovery'){ h+='<div class="fg-field"><label>Mode</label><select id="fgRecMode" class="qsel">'+F_RECOVERY_MODES.map(m=>'<option'+(a.mode===m?' selected':'')+'>'+m+'</option>').join('')+'</select></div><div class="fg-field"><label>Duration (min)</label><input id="fgDuration" inputmode="numeric" value="'+esc(a.duration)+'"></div>'; }
-  h+='<div class="fg-field" id="fgRateRow"><label>How did it feel?</label><div class="fg-stars">'+[1,2,3,4,5].map(s=>'<button class="fg-star'+(s<=(a.rating||0)?' on':'')+'" data-fgrate="'+s+'">★</button>').join('')+'</div></div>';
+  h+='<div class="fg-field" id="fgRateRow"><label>How did it feel?<span class="fg-feel-hint">0 easy · 5 maxed</span></label>'+fgFeelSlider('phys','🔥 Body',a.feelPhys)+fgFeelSlider('mind','🧠 Mind',a.feelMind)+'</div>';
   h+='<div class="fg-field"><label>Note</label><input id="fgNote" value="'+esc(a.note||'')+'" placeholder="optional" maxlength="80"></div>';
   h+='<button class="btn-solid fuel-primary" id="fgComplete">✓ Complete session</button>';
   el.innerHTML=h;
@@ -4368,7 +4387,7 @@ function renderForgeDashboard(){ const f=fgState(); const el=document.getElement
   const recent=sessions.filter(s=>s.date).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
   h+='<div class="fg-block-lab">Recent sessions</div>';
   if(!recent.length) h+='<div class="proto-empty">No sessions logged yet — pick one and complete it.</div>';
-  else h+=recent.map(s=>'<div class="fg-hist"><div class="fg-hist-date">'+esc(s.date.slice(5))+'</div><div class="fg-hist-main"><span class="fg-hist-type">'+esc(s.type)+'</span>'+(s.detail&&s.detail!==s.type?' <span class="fg-hist-detail">'+esc(s.detail)+'</span>':'')+(s.metrics?'<div class="fg-ex-note">'+esc(s.metrics)+'</div>':'')+'</div>'+(s.rating?'<div class="fg-hist-rate">'+'★'.repeat(s.rating)+'</div>':'')+'</div>').join('');
+  else h+=recent.map(s=>'<div class="fg-hist"><div class="fg-hist-date">'+esc(s.date.slice(5))+'</div><div class="fg-hist-main"><span class="fg-hist-type">'+esc(s.type)+'</span>'+(s.detail&&s.detail!==s.type?' <span class="fg-hist-detail">'+esc(s.detail)+'</span>':'')+(s.metrics?'<div class="fg-ex-note">'+esc(s.metrics)+'</div>':'')+'</div>'+(fgHistFeel(s)?'<div class="fg-hist-rate">'+fgHistFeel(s)+'</div>':'')+'</div>').join('');
   const pr={}; (f.log||[]).forEach(r=>{ const w=Number(r.weight)||0; if(w>0 && (!pr[r.exercise]||w>pr[r.exercise])) pr[r.exercise]=w; });
   const prs=Object.entries(pr).sort((a,b)=>b[1]-a[1]).slice(0,6);
   if(prs.length){ h+='<div class="fg-block-lab">Top loads</div><div class="fg-prs">'+prs.map(p=>'<div class="fg-pr"><span>'+esc(p[0])+'</span><b>'+p[1]+' lb</b></div>').join('')+'</div>'; }
