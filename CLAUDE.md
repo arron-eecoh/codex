@@ -21,5 +21,17 @@ Single-file RPG habit tracker (vanilla JS, everything in `index.html`) + Netlify
 - Sub-tab and main-tab order = frequency ramp toward the thumb; defaults live in `SUB_DEFAULT`, decoupled from chip order. Handedness mirrors via `html.lefty`.
 - Update `UPDATES.md` (append) with every meaningful change.
 
-## Deploy
-Push to `main` → GitHub Actions runs the harness → Netlify auto-deploys. Supabase schema: `supabase-setup.sql` (idempotent).
+## The pipeline (Claude Code → GitHub → production)
+This repo IS the deployment pipeline. The loop for every change:
+1. Edit → run `node codex-harness.js` locally → all green.
+2. Append to `UPDATES.md`, bump `const BUILD` in `index.html`.
+3. `git add -A && git commit -m "<what changed>" && git push origin main`.
+4. Push triggers BOTH gates automatically:
+   - GitHub Actions re-runs the harness (visibility: red ✗ on the commit).
+   - **Netlify's build command IS the harness** (`netlify.toml`) — a red suite FAILS the build, the deploy is blocked, and the previous version stays live. A broken push can never reach users.
+5. Green build → live in ~60s. Rollback: Netlify → Deploys → pick any older → Publish.
+
+## Supabase (data layer) rules
+- Schema changes ONLY as edits to `supabase-setup.sql` (kept idempotent), applied by the human in the Supabase SQL Editor. Claude Code NEVER connects to or migrates the production database directly.
+- Any change to the sync payload shape must remain backward-compatible (rule 8): old clients' states must load, and `Cloud.pullMerge` must never adopt an incompatible shape without `migrateState()` handling it.
+- Never log, echo, or commit `SUPABASE_JWT_SECRET`, service-role keys, or user emails.
