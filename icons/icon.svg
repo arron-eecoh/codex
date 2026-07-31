@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- The Steward's Codex — seedling rising from a forge ember -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#1a2620"/>
+      <stop offset="55%" stop-color="#0e1411"/>
+      <stop offset="100%" stop-color="#0a0f0c"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0c468" stop-opacity=".55"/>
+      <stop offset="45%" stop-color="#d9a441" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#d9a441" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ember" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#d9a441"/>
+      <stop offset="100%" stop-color="#f0c468"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#6f9430"/>
+      <stop offset="100%" stop-color="#8fb83f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- forge glow behind the ember bed -->
+  <ellipse cx="256" cy="352" rx="190" ry="120" fill="url(#glow)"/>
+
+  <!-- ember bed: a low forge mound with glowing seams -->
+  <path d="M116 372 Q256 300 396 372 L396 396 Q256 428 116 396 Z" fill="#1b2620" stroke="#d9a441" stroke-opacity=".35" stroke-width="4"/>
+  <path d="M156 372 Q200 348 236 362" fill="none" stroke="url(#ember)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M276 358 Q322 346 356 370" fill="none" stroke="url(#ember)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M206 392 Q256 378 306 392" fill="none" stroke="url(#ember)" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+
+  <!-- rising sparks -->
+  <circle cx="180" cy="290" r="6" fill="#f0c468" opacity=".85"/>
+  <circle cx="336" cy="272" r="5" fill="#d9a441" opacity=".8"/>
+  <circle cx="306" cy="318" r="4" fill="#f0c468" opacity=".6"/>
+  <circle cx="196" cy="240" r="3.5" fill="#d9a441" opacity=".55"/>
+
+  <!-- seedling: stem + two leaves + bud -->
+  <path d="M256 356 C252 300 258 250 256 196" fill="none" stroke="url(#leaf)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M256 268 C214 262 180 228 178 182 C224 186 254 220 256 268 Z" fill="url(#leaf)"/>
+  <path d="M256 238 C298 232 332 198 334 152 C288 156 258 190 256 238 Z" fill="#8fb83f"/>
+  <circle cx="256" cy="182" r="17" fill="#a9cf5e"/>
+  <circle cx="256" cy="182" r="8" fill="#f0c468"/>
+</svg>

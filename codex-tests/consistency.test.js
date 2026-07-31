@@ -49,5 +49,5 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.07\.18-r454'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.07\.31-r455'/.test(srcB) && /id="buildStamp"/.test(srcB));
 };
