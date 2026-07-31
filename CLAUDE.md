@@ -8,7 +8,7 @@ Single-file RPG habit tracker (vanilla JS, everything in `index.html`) + Netlify
 3. **Run `node codex-harness.js` after every change. All suites must pass before committing.**
 4. **Local-first sync is sacred:** localStorage writes first, always. Cloud adoption ONLY when remote `rev` is strictly greater than local `_rev` (see `Cloud.pullMerge`). Never invert this, never adopt on equal revs, never block the UI on network.
 5. **Every save must bump `state._rev`** (in `Store.save`) — the sync merge depends on it.
-6. **No secrets in the repo.** `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SECRET` live in Netlify env vars only. Client config comes from `/.netlify/functions/config`.
+6. **No secrets in the repo.** `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` live in Netlify env vars only (auth verified via Supabase auth server — no JWT secret needed). Client config comes from `/.netlify/functions/config`.
 7. **New interactive elements need reachability manifest entries** (`codex-tests/reachability.test.js`). Listener scopes: forge/fuel/timer/activation handlers in the training-pane listener; cross-pane UI in document-level `onDocClick`/`onDocKeydown`.
 8. **Migrations must be additive** — loading old state (local OR cloud) must never lose fields.
 9. **Fixed-position UI** (bottom nav, subDock, timer): no ancestor may gain `transform`/`filter`. Scroll navigation stays occlusion-aware.
