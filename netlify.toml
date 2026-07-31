@@ -1,0 +1,16 @@
+# EECOH Codex — Netlify configuration
+# Single self-contained index.html at the repo root + one serverless function.
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Optional clean URL: /api/ai -> the function. The app calls the function
+# path directly, so this is just a convenience.
+[[redirects]]
+  from = "/api/ai"
+  to = "/.netlify/functions/ai"
+  status = 200

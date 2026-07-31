@@ -1,0 +1,3 @@
+# Update log
+- 2026-07-18 — LIVE LAUNCH build (r454+cloud): Supabase accounts (magic-link via Resend SMTP), local-first cloud sync (rev-based merge, debounced push, RLS row security), JWT-gated Claude proxy, env-driven client config, Settings Account & Sync panel. 468/468 across 18 suites.
+- 2026-07-18 — Initial release feature set: bottom thumb-zone nav (frequency-ramped), sub-tab dock, docked timer + cross-tab pill, occlusion-aware auto-navigation, Forge voice + hands-free, interactive warm-up with per-side holds, fill-forward, coordination engine, skill ladders, handedness mirroring, density modes, modal ergonomics standard, build stamps.
