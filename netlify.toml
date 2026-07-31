@@ -3,6 +3,12 @@
 
 [build]
   publish = "."
+  # THE DEPLOY GATE: the full regression suite IS the build.
+  # If any test fails, the build fails and the previous deploy stays live.
+  command = "node codex-harness.js"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [functions]
   directory = "netlify/functions"
