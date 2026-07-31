@@ -1,32 +1,35 @@
-// Claude proxy. If SUPABASE_JWT_SECRET is set, requires a valid signed-in user (JWT);
-// otherwise stays open (pre-accounts mode). ANTHROPIC_API_KEY never reaches the client.
-const crypto = require('crypto');
+// Claude proxy. When Supabase is configured (SUPABASE_URL + SUPABASE_ANON_KEY),
+// the coach requires a signed-in user: the bearer token is verified against
+// Supabase's auth server — works with legacy AND new JWT signing keys.
+// ANTHROPIC_API_KEY never reaches the client.
 
-function verifyJwt(token, secret) {
+async function verifyUser(token) {
+  const url = process.env.SUPABASE_URL, anon = process.env.SUPABASE_ANON_KEY;
+  if (!url || !anon) return { ok: true, open: true };           // cloud not configured → open mode
+  if (!token) return { ok: false };
   try {
-    const [h, p, sig] = token.split('.');
-    if (!h || !p || !sig) return null;
-    const expected = crypto.createHmac('sha256', secret).update(h + '.' + p).digest('base64url');
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
-    const payload = JSON.parse(Buffer.from(p, 'base64url').toString('utf8'));
-    if (payload.exp && Date.now() / 1000 > payload.exp) return null;
-    return payload;
-  } catch (e) { return null; }
+    const r = await fetch(url.replace(/\/$/, '') + '/auth/v1/user', {
+      headers: { Authorization: 'Bearer ' + token, apikey: anon }
+    });
+    if (!r.ok) return { ok: false };
+    const u = await r.json();
+    return u && u.id ? { ok: true, userId: u.id } : { ok: false };
+  } catch (e) { return { ok: false }; }
 }
 
 exports.handler = async (event) => {
+  const authRequired = !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
   if (event.httpMethod === 'GET') {
-    return { statusCode: 200, body: JSON.stringify({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, authRequired: !!process.env.SUPABASE_JWT_SECRET }) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, authRequired }) };
   }
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
   if (!process.env.ANTHROPIC_API_KEY) return { statusCode: 500, body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }) };
 
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (secret) {
+  if (authRequired) {
     const auth = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-    const payload = token ? verifyJwt(token, secret) : null;
-    if (!payload || !payload.sub) return { statusCode: 401, body: JSON.stringify({ error: 'sign in to use the coach' }) };
+    const v = await verifyUser(token);
+    if (!v.ok) return { statusCode: 401, body: JSON.stringify({ error: 'sign in to use the coach' }) };
   }
 
   try {
