@@ -35,8 +35,8 @@ module.exports = async function(C){
 
   // ---- coach receives training context ----
   const appSrc=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('both coach prompts carry TRAINING TODAY', (appSrc.match(/TRAINING TODAY: \$\{JSON\.stringify\(ctx\.training/g)||[]).length===2);
-  ok('coach ctx builders pass trainingDayContext()', (appSrc.match(/training:trainingDayContext\(\)/g)||[]).length===2);
+  ok('coach prompts + menu scan carry TRAINING TODAY', (appSrc.match(/TRAINING TODAY: \$\{JSON\.stringify\(ctx\.training/g)||[]).length===3);
+  ok('coach + menu ctx builders pass trainingDayContext()', (appSrc.match(/training:trainingDayContext\(\)/g)||[]).length===3);
 
   // ---- picker fuel note: unsealed yesterday with entries ----
   C.s=baseState();

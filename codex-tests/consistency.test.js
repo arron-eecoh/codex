@@ -49,5 +49,22 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.07\.31-r456'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.03-r458'/.test(srcB) && /id="buildStamp"/.test(srcB));
+
+  // ---- photo & menu AI pipelines stay wired end-to-end ----
+  ok('plate photo flow: button → hidden input → onFuelPhoto → nutEstImage',
+    /id="fuelPhotoBtn"/.test(srcB) && /id="fuelPhoto"/.test(srcB) && /onFuelPhoto\(f\)/.test(srcB) && /nutEstImage\(b64/.test(srcB));
+  ok('menu scan flow: button → hidden input → onFuelMenu → nutScanMenu',
+    /id="fuelMenuBtn"/.test(srcB) && /id="fuelMenu"/.test(srcB) && /onFuelMenu\(f\)/.test(srcB) && /nutScanMenu\(b64/.test(srcB));
+  ok('menu curation sees remaining budget, targets AND training day',
+    /nutScanMenu\(b64,\{remaining,targets:tt,training:trainingDayContext\(\)\}/.test(srcB) && /TRAINING TODAY: \$\{JSON\.stringify\(ctx\.training/.test(srcB));
+  ok('images upload at the model vision cap (1568px), not over-downscaled', /const max=1568/.test(srcB));
+
+  // ---- fuel AI errors are actionable, not the stale "runs inside Claude" catch-all ----
+  ok('web search tool is the current 4.6-generation version', /web_search_20260209/.test(srcB) && !/web_search_20250305/.test(srcB));
+  ok('no catch-all blames "inside Claude" anymore', !/needs to run inside Claude|runs inside Claude/.test(srcB));
+  ok('aiFailMsg surfaces sign-in and proxy errors', typeof C.aiFailMsg==='function'
+    && /Sign in/.test(C.aiFailMsg(new Error('AI proxy: sign in to use the coach')))
+    && /rate limited/.test(C.aiFailMsg(new Error('AI proxy: rate limited')))
+    && /reach the AI/.test(C.aiFailMsg(new Error('Failed to fetch'))));
 };
