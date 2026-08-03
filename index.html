@@ -2452,7 +2452,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.03-r457';
+const BUILD='2026.08.03-r458';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4555,6 +4555,7 @@ async function nutScanMenu(b64,ctx,search){
   const prompt=`You are reading a restaurant menu photo for someone tracking macros for fat loss.
 THEIR REMAINING BUDGET TODAY (kcal/p/c/f): ${JSON.stringify(ctx.remaining)}
 THEIR DAILY TARGETS: ${JSON.stringify(ctx.targets)}
+TRAINING TODAY: ${JSON.stringify(ctx.training||null)} - targets already reflect this; on a training day lean into protein + carbs to refuel, on a rest day favour leaner picks.
 WHO THEY ARE: ${NUT_PROFILE.goal} Protein floor matters; skew fat unsaturated. When out they enjoy: ${NUT_PROFILE.eatingOut}
 List the orderable dishes (up to 14 mains/bowls/proteins). Estimate TYPICAL restaurant macros for one serving. Rank BEST-FIRST for this person's remaining budget and goal, balancing macro fit AND enjoyment.
 Respond ONLY with raw JSON:
@@ -4568,7 +4569,7 @@ async function fileToJpeg(file){
   const dataUrl=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
   try{
     const img=await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataUrl; });
-    const max=1280, scale=Math.min(1,max/Math.max(img.width,img.height));
+    const max=1568, scale=Math.min(1,max/Math.max(img.width,img.height));   // 1568px = the model's vision cap — keeps menu text legible
     const cv=document.createElement('canvas'); cv.width=Math.round(img.width*scale); cv.height=Math.round(img.height*scale);
     cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
     return cv.toDataURL('image/jpeg',0.85).split(',')[1];   // re-encode → fixes HEIC, downscales → avoids token truncation
@@ -4596,7 +4597,7 @@ function fuelStampBase(it){ if(it._bm==null){ it._bq=fuelQty(it.portion); it._bm
 function fuelRebase(it){ it._bq=fuelQty(it.portion); it._bm={cal:+it.cal||0,p:+it.p||0,c:+it.c||0,f:+it.f||0,fib:+it.fib||0,sat:+it.sat||0}; }
 function fuelScaleItem(it){ if(!it||!it._bm) return; var bq=it._bq, q=fuelQty(it.portion); if(isFinite(bq)&&bq>0&&isFinite(q)&&q>0){ var r=q/bq; ['cal','p','c','f','fib','sat'].forEach(function(k){ it[k]= k==='cal'?Math.round(it._bm[k]*r):Math.round(it._bm[k]*r*10)/10; }); } }
 function fuelQuickAdd(i){ const f=fuelState().cache[i]; if(!f) return; fuelPending={items:[Object.assign({},f,{confidence:'high'})],questions:[]}; openReview(); }
-async function onFuelMenu(file){ fuelSetErr(null); fuelSetLoading('menu'); try{ const b64=await fileToJpeg(file); const tt=fuelTargetsEff(), tot=fuelTotals(); const remaining={cal:tt.cal-tot.cal,p:tt.p-tot.p,c:tt.c-tot.c,f:tt.f-tot.f}; const out=await nutScanMenu(b64,{remaining,targets:tt},fuelState().search); const dishes=out.dishes||out.items||[]; if(!dishes.length) fuelSetErr("Couldn't read dishes off that menu. Try a clearer, closer shot."); else { fuelMenuData={summary:out.summary||'',dishes}; openMenu(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
+async function onFuelMenu(file){ fuelSetErr(null); fuelSetLoading('menu'); try{ const b64=await fileToJpeg(file); const tt=fuelTargetsEff(), tot=fuelTotals(); const remaining={cal:tt.cal-tot.cal,p:tt.p-tot.p,c:tt.c-tot.c,f:tt.f-tot.f}; const out=await nutScanMenu(b64,{remaining,targets:tt,training:trainingDayContext()},fuelState().search); const dishes=out.dishes||out.items||[]; if(!dishes.length) fuelSetErr("Couldn't read dishes off that menu. Try a clearer, closer shot."); else { fuelMenuData={summary:out.summary||'',dishes}; openMenu(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 function fuelLogDish(i){ const d=fuelMenuData.dishes[i]; const log=fuelDay(); const a=fuelState();
   const e={id:'f'+Math.random().toString(36).slice(2,9),name:d.name,portion:'1',unit:'serving',time:nowHM(),cal:+d.cal||0,p:+d.p||0,c:+d.c||0,f:+d.f||0,fib:+d.fib||0,sat:+d.sat||0}; log.push(e);
   const key=normName(d.name), rec={name:d.name,portion:'1',unit:'serving',cal:e.cal,p:e.p,c:e.c,f:e.f,fib:e.fib,sat:e.sat}; const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); a.cache=a.cache.slice(0,400);
