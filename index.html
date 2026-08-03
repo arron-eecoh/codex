@@ -1315,7 +1315,7 @@
         <button class="btn-solid" id="alchemySeal">Seal today’s fuel</button>
       </div>
 
-      <details class="note-fold"><summary>ⓘ About this section</summary><div class="scaffold-note">Log your fuel by photo, text, or a saved food — the codex estimates the macros. <b>Seal the day</b> when you're done to feed your <span style="color:var(--body)">Body</span> + <span style="color:var(--energy)">Energy</span> and your Alchemy streak. <span class="fuel-ai-note">Photo &amp; coach use AI and work while running inside Claude; a downloaded copy logs manually.</span></div></details>
+      <details class="note-fold"><summary>ⓘ About this section</summary><div class="scaffold-note">Log your fuel by photo, text, or a saved food — the codex estimates the macros. <b>Seal the day</b> when you're done to feed your <span style="color:var(--body)">Body</span> + <span style="color:var(--energy)">Energy</span> and your Alchemy streak. <span class="fuel-ai-note">Photo, text &amp; coach estimates use AI — sign in (Settings → Account &amp; Sync) to enable them; saved foods and manual entry always work.</span></div></details>
 
       <div class="fuel-dash" id="fuelDash"></div>
       <div class="fuel-status" id="fuelStatus"></div>
@@ -2452,7 +2452,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.07.31-r456';
+const BUILD='2026.08.03-r457';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4508,7 +4508,13 @@ async function aiPost(body){
   if(!r2.ok) throw new Error('HTTP '+r2.status);
   return r2.json();
 }
-async function nutCallAPI(content,useSearch,maxTokens){ const body={model:'claude-sonnet-4-6',max_tokens:maxTokens||1000,messages:[{role:'user',content}]}; if(useSearch) body.tools=[{type:'web_search_20250305',name:'web_search'}]; let lastErr; for(let a=0;a<2;a++){ try{ const data=await aiPost(body); return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n'); }catch(e){ lastErr=e; if(a===0) await new Promise(r=>setTimeout(r,600)); } } throw lastErr; }
+/* Turn an aiPost failure into an actionable message — the old catch-alls
+   hid sign-in and server errors behind a stale claim on the hosted build. */
+function aiFailMsg(e){ const m=String((e&&e.message)||'');
+  if(/sign in/i.test(m)) return '🔑 Sign in (Settings → Account & Sync) to use AI estimates — they run through your account.';
+  if(m.indexOf('AI proxy: ')===0) return 'AI error: '+m.slice(10)+' — try again, or use a saved food (Quick add).';
+  return 'Couldn’t reach the AI — check your connection and retry, or use a saved food (Quick add).'; }
+async function nutCallAPI(content,useSearch,maxTokens){ const body={model:'claude-sonnet-4-6',max_tokens:maxTokens||1000,messages:[{role:'user',content}]}; if(useSearch) body.tools=[{type:'web_search_20260209',name:'web_search'}]; let lastErr; for(let a=0;a<2;a++){ try{ const data=await aiPost(body); return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n'); }catch(e){ lastErr=e; if(a===0) await new Promise(r=>setTimeout(r,600)); } } throw lastErr; }
 async function nutEstImage(b64,mime,search){ return nutExtractJSON(await nutCallAPI([{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'Identify every food in this photo and estimate macros. Cap at 15 items.\n'+NUT_SCHEMA}],search,2000)); }
 async function nutEstText(desc,search){ return nutExtractJSON(await nutCallAPI([{type:'text',text:'Estimate macros for: "'+desc+'".\n'+NUT_SCHEMA}],search,2000)); }
 async function nutReEst(items,qa,search){ return nutExtractJSON(await nutCallAPI([{type:'text',text:'Revise these macro estimates using the answers.\nCurrent: '+JSON.stringify(items)+'\nAnswers: '+qa+'\n'+NUT_SCHEMA+'\nReturn empty questions now.'}],search)); }
@@ -4575,8 +4581,8 @@ function fuelSetErr(m){ fuelErr=m; const el=document.getElementById('fuelErr'); 
 function fuelSetLoading(v){ fuelLoading=v; renderAlchemy(); }
 function aiReady(){ return typeof fetch==='function'; }
 
-async function onFuelPhoto(file){ fuelSetErr(null); fuelSetLoading('photo'); try{ const b64=await fileToJpeg(file); const out=await nutEstImage(b64,'image/jpeg',fuelState().search); if(!out.items||!out.items.length) fuelSetErr((out.questions&&out.questions[0])||'No food detected. Try another angle, or add it manually.'); else { fuelPending={items:out.items,questions:out.questions||[],time:out.time}; openReview(); } }catch(e){ fuelSetErr("Couldn't read that image - the AI needs to run inside Claude. Add it manually below."); } fuelSetLoading(null); }
-async function onFuelText(){ const inp=document.getElementById('fuelText'); const v=(inp.value||'').trim(); if(!v) return; const hit=fuelState().cache.find(f=>normName(f.name)===normName(v)); if(hit){ fuelPending={items:[Object.assign({},hit,{confidence:'high'})],questions:[]}; inp.value=''; openReview(); return; } fuelSetErr(null); fuelSetLoading('text'); try{ const out=await nutEstText(v,fuelState().search); if(!out.items||!out.items.length) fuelSetErr("Couldn't find a food in that. Reword and retry."); else { fuelPending={items:out.items,questions:out.questions||[]}; inp.value=''; openReview(); } }catch(e){ fuelSetErr("Couldn't estimate - the AI needs to run inside Claude. Try a saved food (Quick add)."); } fuelSetLoading(null); }
+async function onFuelPhoto(file){ fuelSetErr(null); fuelSetLoading('photo'); try{ const b64=await fileToJpeg(file); const out=await nutEstImage(b64,'image/jpeg',fuelState().search); if(!out.items||!out.items.length) fuelSetErr((out.questions&&out.questions[0])||'No food detected. Try another angle, or add it manually.'); else { fuelPending={items:out.items,questions:out.questions||[],time:out.time}; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
+async function onFuelText(){ const inp=document.getElementById('fuelText'); const v=(inp.value||'').trim(); if(!v) return; const hit=fuelState().cache.find(f=>normName(f.name)===normName(v)); if(hit){ fuelPending={items:[Object.assign({},hit,{confidence:'high'})],questions:[]}; inp.value=''; openReview(); return; } fuelSetErr(null); fuelSetLoading('text'); try{ const out=await nutEstText(v,fuelState().search); if(!out.items||!out.items.length) fuelSetErr("Couldn't find a food in that. Reword and retry."); else { fuelPending={items:out.items,questions:out.questions||[]}; inp.value=''; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 async function onFuelReEst(answers){ fuelSetLoading('reest'); try{ const out=await nutReEst(fuelPending.items,answers,fuelState().search); fuelPending={items:out.items||fuelPending.items,questions:out.questions||[]}; renderReview(); }catch(e){ } fuelSetLoading(null); renderReview(); }
 function fuelCommit(){ if(!fuelPending) return; const log=fuelDay(); const stamp=normTime(fuelPending.time)||nowHM(); const a=fuelState();
   fuelPending.items.forEach(it=>{ fuelScaleItem(it); log.push({id:'f'+Math.random().toString(36).slice(2,9),name:it.name,portion:it.portion,unit:it.unit,time:stamp,cal:+it.cal||0,p:+it.p||0,c:+it.c||0,f:+it.f||0,fib:+it.fib||0,sat:+it.sat||0});
@@ -4590,19 +4596,19 @@ function fuelStampBase(it){ if(it._bm==null){ it._bq=fuelQty(it.portion); it._bm
 function fuelRebase(it){ it._bq=fuelQty(it.portion); it._bm={cal:+it.cal||0,p:+it.p||0,c:+it.c||0,f:+it.f||0,fib:+it.fib||0,sat:+it.sat||0}; }
 function fuelScaleItem(it){ if(!it||!it._bm) return; var bq=it._bq, q=fuelQty(it.portion); if(isFinite(bq)&&bq>0&&isFinite(q)&&q>0){ var r=q/bq; ['cal','p','c','f','fib','sat'].forEach(function(k){ it[k]= k==='cal'?Math.round(it._bm[k]*r):Math.round(it._bm[k]*r*10)/10; }); } }
 function fuelQuickAdd(i){ const f=fuelState().cache[i]; if(!f) return; fuelPending={items:[Object.assign({},f,{confidence:'high'})],questions:[]}; openReview(); }
-async function onFuelMenu(file){ fuelSetErr(null); fuelSetLoading('menu'); try{ const b64=await fileToJpeg(file); const tt=fuelTargetsEff(), tot=fuelTotals(); const remaining={cal:tt.cal-tot.cal,p:tt.p-tot.p,c:tt.c-tot.c,f:tt.f-tot.f}; const out=await nutScanMenu(b64,{remaining,targets:tt},fuelState().search); const dishes=out.dishes||out.items||[]; if(!dishes.length) fuelSetErr("Couldn't read dishes off that menu. Try a clearer, closer shot."); else { fuelMenuData={summary:out.summary||'',dishes}; openMenu(); } }catch(e){ fuelSetErr("Couldn't read that menu - the AI needs to run inside Claude."); } fuelSetLoading(null); }
+async function onFuelMenu(file){ fuelSetErr(null); fuelSetLoading('menu'); try{ const b64=await fileToJpeg(file); const tt=fuelTargetsEff(), tot=fuelTotals(); const remaining={cal:tt.cal-tot.cal,p:tt.p-tot.p,c:tt.c-tot.c,f:tt.f-tot.f}; const out=await nutScanMenu(b64,{remaining,targets:tt},fuelState().search); const dishes=out.dishes||out.items||[]; if(!dishes.length) fuelSetErr("Couldn't read dishes off that menu. Try a clearer, closer shot."); else { fuelMenuData={summary:out.summary||'',dishes}; openMenu(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 function fuelLogDish(i){ const d=fuelMenuData.dishes[i]; const log=fuelDay(); const a=fuelState();
   const e={id:'f'+Math.random().toString(36).slice(2,9),name:d.name,portion:'1',unit:'serving',time:nowHM(),cal:+d.cal||0,p:+d.p||0,c:+d.c||0,f:+d.f||0,fib:+d.fib||0,sat:+d.sat||0}; log.push(e);
   const key=normName(d.name), rec={name:d.name,portion:'1',unit:'serving',cal:e.cal,p:e.p,c:e.c,f:e.f,fib:e.fib,sat:e.sat}; const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); a.cache=a.cache.slice(0,400);
   fuelMenuData=null; closeModal('menuOverlay'); commit(); runFuelCoach(); }
-async function runFuelCoach(){ if(!aiReady()) return; const log=fuelDay(), tt=fuelTargetsEff(), t=fuelTotals(log); const remaining={cal:tt.cal-t.cal,p:tt.p-t.p,c:tt.c-t.c,f:tt.f-t.f,fib:tt.fib-t.fib}; fuelCoachLoading=true; renderCoach(); try{ const out=await nutCoach({training:trainingDayContext(),targets:tt,totals:t,remaining,time:nowHM(),entries:log.map(e=>({name:e.name,time:e.time,cal:e.cal,p:e.p,c:e.c,f:e.f})),foods:fuelState().cache.slice(0,25).map(f=>({name:f.name,portion:f.portion,unit:f.unit,cal:f.cal,p:f.p,c:f.c,f:f.f}))}); fuelCoachData=out; }catch(e){ fuelCoachData={headline:'Coach is offline (runs inside Claude)',cards:[]}; } fuelCoachLoading=false; renderCoach(); }
+async function runFuelCoach(){ if(!aiReady()) return; const log=fuelDay(), tt=fuelTargetsEff(), t=fuelTotals(log); const remaining={cal:tt.cal-t.cal,p:tt.p-t.p,c:tt.c-t.c,f:tt.f-t.f,fib:tt.fib-t.fib}; fuelCoachLoading=true; renderCoach(); try{ const out=await nutCoach({training:trainingDayContext(),targets:tt,totals:t,remaining,time:nowHM(),entries:log.map(e=>({name:e.name,time:e.time,cal:e.cal,p:e.p,c:e.c,f:e.f})),foods:fuelState().cache.slice(0,25).map(f=>({name:f.name,portion:f.portion,unit:f.unit,cal:f.cal,p:f.p,c:f.c,f:f.f}))}); fuelCoachData=out; }catch(e){ fuelCoachData={headline:aiFailMsg(e),cards:[]}; } fuelCoachLoading=false; renderCoach(); }
 
 async function nutCoachAsk(question){ if(!aiReady()||fuelCoachAsking) return; fuelCoachAsking=true; const inp=document.getElementById('fuelCoachQ'); if(inp) inp.value=''; renderCoach();
   try{ const log=fuelDay(), tt=fuelTargetsEff(), t=fuelTotals(log); const remaining={cal:tt.cal-t.cal,p:tt.p-t.p,c:tt.c-t.c,f:tt.f-t.f,fib:tt.fib-t.fib};
     const ctx={training:trainingDayContext(),targets:tt,totals:t,remaining,time:nowHM(),entries:log.map(e=>({name:e.name,time:e.time,cal:e.cal,p:e.p,c:e.c,f:e.f})),foods:fuelState().cache.slice(0,25).map(f=>({name:f.name,cal:f.cal,p:f.p,c:f.c,f:f.f}))};
     const reply=await nutCoachReply(ctx, fuelCoachData, fuelCoachChat, question);
     fuelCoachChat.push({q:question,a:reply||'(no reply)'});
-  }catch(e){ fuelCoachChat.push({q:question,a:'Coach is offline — the AI runs inside Claude. Open this in Claude to ask follow-ups.'}); }
+  }catch(e){ fuelCoachChat.push({q:question,a:aiFailMsg(e)}); }
   fuelCoachAsking=false; renderCoach();
 }
 function onFuelCoachAsk(){ const inp=document.getElementById('fuelCoachQ'); const q=((inp&&inp.value)||'').trim(); if(!q) return; nutCoachAsk(q); }
