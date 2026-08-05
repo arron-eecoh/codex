@@ -49,7 +49,13 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.03-r458'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.03-r459'/.test(srcB) && /id="buildStamp"/.test(srcB));
+
+  // ---- update nudge: build.json must always match BUILD (deploy gate keeps them in sync) ----
+  const bj=JSON.parse(require('fs').readFileSync(require('path').join(require('path').dirname(global.__APPFILE),'build.json'),'utf8'));
+  ok('build.json matches the BUILD stamp', new RegExp("const BUILD='"+bj.build.replace(/\./g,'\\.')+"'").test(srcB));
+  ok('stale pages poll build.json and offer a tap-to-refresh', /fetch\('\/build\.json/.test(srcB) && /location\.reload\(\)/.test(srcB) && /visibilitychange',\(\)=>\{ if\(document\.visibilityState==='visible'\) checkForUpdate/.test(srcB));
+  ok('nudge is throttled and dismissible', /lastBuildCheck<5\*60\*1000/.test(srcB) && /un-x/.test(srcB));
 
   // ---- photo & menu AI pipelines stay wired end-to-end ----
   ok('plate photo flow: button → hidden input → onFuelPhoto → nutEstImage',

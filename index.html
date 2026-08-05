@@ -640,6 +640,8 @@
   .fg-feel-val{flex:0 0 96px;text-align:right;font-size:11.5px;color:var(--ink-faint)}
   .fg-feel-row.set .fg-feel-val{color:var(--ember)}
   .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
+  #updateNudge{position:fixed;top:10px;left:0;right:0;margin:0 auto;width:max-content;max-width:92vw;z-index:400;display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--ember);color:var(--ink);font-size:12.5px;padding:9px 12px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
+  #updateNudge .un-x{background:none;border:none;color:var(--ink-faint);font-size:14px;padding:2px 4px;cursor:pointer}
   .fg-week{background:var(--panel);border:1px solid rgba(217,164,65,.34);border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
   .fg-week-n{font-size:30px;font-weight:700;font-family:'Cinzel',serif;color:var(--ember)}
   .fg-week-lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-top:2px}
@@ -2452,7 +2454,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.03-r458';
+const BUILD='2026.08.03-r459';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3578,6 +3580,27 @@ function onDocClick(e){
   if(qe){ const id=qe.dataset.qexpand; if(qExpanded.has(id)) qExpanded.delete(id); else qExpanded.add(id); renderQuests(); return; }
 }
 document.addEventListener('click', onDocClick);
+
+/* ---- update nudge: long-lived pages learn a new build shipped ----
+   Polls the tiny build.json published beside the app (never the 400KB page).
+   Silent on any failure — offline and downloaded copies just never nudge.
+   Passive by design: the user taps to reload; nothing refreshes itself. */
+let updateNudgeShown=false, lastBuildCheck=0;
+async function checkForUpdate(){ const now=Date.now();
+  if(updateNudgeShown || now-lastBuildCheck<5*60*1000) return;
+  lastBuildCheck=now;
+  try{ const r=await fetch('/build.json?b='+now,{cache:'no-store'}); if(!r||!r.ok) return;
+    const j=await r.json(); if(j&&j.build&&j.build!==BUILD) showUpdateNudge(j.build);
+  }catch(e){} }
+function showUpdateNudge(v){ if(document.getElementById('updateNudge')) return; updateNudgeShown=true;
+  const d=document.createElement('div'); d.id='updateNudge';
+  d.innerHTML='✨ Update ready ('+esc(v)+') — tap to refresh<button class="un-x" aria-label="Dismiss">✕</button>';
+  d.onclick=(e)=>{ if(e.target&&e.target.closest&&e.target.closest('.un-x')){ d.remove(); } else { try{ location.reload(); }catch(e2){} } };
+  document.body.appendChild(d); }
+try{
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkForUpdate(); });
+  setInterval(checkForUpdate, 60*60*1000);
+}catch(e){}
 function onDocKeydown(e){
   if(e.key==='Escape'){ try{ const ov=document.querySelector('.overlay.open'); if(ov){ closeOverlayEl(ov); return; } }catch(_){} }
   if(e.key!=='Enter') return;
