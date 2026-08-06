@@ -49,7 +49,18 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.03-r459'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.06-r460'/.test(srcB) && /id="buildStamp"/.test(srcB));
+
+  // ---- camera fast-path: snap buttons open the camera, 🖼 buttons open the gallery ----
+  ok('meal + menu each have a capture input AND a gallery input',
+    /capture="environment" id="fuelPhotoCam"/.test(srcB) && /accept="image\/\*" id="fuelPhoto"/.test(srcB)
+    && /capture="environment" id="fuelMenuCam"/.test(srcB) && /accept="image\/\*" id="fuelMenu"/.test(srcB));
+  ok('snap buttons trigger the camera inputs, upload buttons the gallery inputs',
+    /#fuelPhotoBtn'\)\)\{ if\(fuelLoading\) return; document\.getElementById\('fuelPhotoCam'\)\.click/.test(srcB)
+    && /#fuelPhotoUpBtn'\)\)\{ if\(fuelLoading\) return; document\.getElementById\('fuelPhoto'\)\.click/.test(srcB)
+    && /#fuelMenuBtn'\)\)\{ if\(fuelLoading\) return; document\.getElementById\('fuelMenuCam'\)\.click/.test(srcB)
+    && /#fuelMenuUpBtn'\)\)\{ if\(fuelLoading\) return; document\.getElementById\('fuelMenu'\)\.click/.test(srcB));
+  ok('all four inputs feed the photo/menu handlers', /\['fuelPhoto','fuelPhotoCam'\]/.test(srcB) && /\['fuelMenu','fuelMenuCam'\]/.test(srcB));
 
   // ---- update nudge: build.json must always match BUILD (deploy gate keeps them in sync) ----
   const bj=JSON.parse(require('fs').readFileSync(require('path').join(require('path').dirname(global.__APPFILE),'build.json'),'utf8'));
