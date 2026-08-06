@@ -392,7 +392,7 @@
     .proto-del{width:44px;height:44px}
     .proto-add .btn-solid{min-height:44px}
     /* kill tap-delay on the newer surfaces the original rule didn't list */
-    .fg-focus-btn,.fg-type,.fg-set-check,.fg-feel,.fg-w,.fg-r,.fuel-chip,.fuel-entry-del,.fuel-coach-ask,.fuel-stepper button,.fs-arm,.proto-row,.proto-del,.iconbtn,.icon-btn,.suggest-chip,.fuel-primary,.fuel-wide,#alchemySeal,.fg-travel,.fuel-search,.train-sub button,[data-fgstart],[data-fgfocus],[data-prototoggle]{touch-action:manipulation}
+    .fg-focus-btn,.fg-type,.fg-set-check,.fg-feel,.fg-w,.fg-r,.fuel-chip,.fuel-entry-del,.fuel-coach-ask,.fuel-stepper button,.fs-arm,.proto-row,.proto-del,.iconbtn,.icon-btn,.suggest-chip,.fuel-primary,.fuel-wide,.fuel-galbtn,#alchemySeal,.fg-travel,.fuel-search,.train-sub button,[data-fgstart],[data-fgfocus],[data-prototoggle]{touch-action:manipulation}
   }
   @media(max-width:380px){
     .pillars{grid-template-columns:1fr 1fr}
@@ -640,6 +640,9 @@
   .fg-feel-val{flex:0 0 96px;text-align:right;font-size:11.5px;color:var(--ink-faint)}
   .fg-feel-row.set .fg-feel-val{color:var(--ember)}
   .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
+  .fuel-btnrow{display:flex;gap:8px;align-items:stretch}
+  .fuel-btnrow .fuel-primary,.fuel-btnrow .fuel-wide{flex:1;min-width:0}
+  .fuel-galbtn{flex:0 0 auto;min-width:48px;font-size:17px;padding:0 12px}
   #updateNudge{position:fixed;top:10px;left:0;right:0;margin:0 auto;width:max-content;max-width:92vw;z-index:400;display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--ember);color:var(--ink);font-size:12.5px;padding:9px 12px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
   #updateNudge .un-x{background:none;border:none;color:var(--ink-faint);font-size:14px;padding:2px 4px;cursor:pointer}
   .fg-week{background:var(--panel);border:1px solid rgba(217,164,65,.34);border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
@@ -1323,10 +1326,12 @@
       <div class="fuel-status" id="fuelStatus"></div>
       <div class="fuel-coach" id="fuelCoach"></div>
 
+      <input type="file" accept="image/*" capture="environment" id="fuelPhotoCam" style="display:none">
       <input type="file" accept="image/*" id="fuelPhoto" style="display:none">
+      <input type="file" accept="image/*" capture="environment" id="fuelMenuCam" style="display:none">
       <input type="file" accept="image/*" id="fuelMenu" style="display:none">
-      <button class="btn-solid fuel-primary" id="fuelPhotoBtn">📷 Snap or upload a meal</button>
-      <button class="btn-ghost fuel-wide" id="fuelMenuBtn">📜 Scan a menu — smart picks</button>
+      <div class="fuel-btnrow"><button class="btn-solid fuel-primary" id="fuelPhotoBtn">📷 Snap a meal</button><button class="btn-ghost fuel-galbtn" id="fuelPhotoUpBtn" title="Upload a meal photo" aria-label="Upload a meal photo">🖼</button></div>
+      <div class="fuel-btnrow"><button class="btn-ghost fuel-wide" id="fuelMenuBtn">📜 Scan a menu — smart picks</button><button class="btn-ghost fuel-galbtn" id="fuelMenuUpBtn" title="Upload a menu photo or screenshot" aria-label="Upload a menu photo or screenshot">🖼</button></div>
       <div class="fuel-manual">
         <input type="text" id="fuelText" placeholder="…or type it: ‘2 eggs, toast, coffee’" autocomplete="off">
         <button class="btn-ghost" id="fuelTextBtn" title="Estimate">✨</button>
@@ -2454,7 +2459,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.03-r459';
+const BUILD='2026.08.06-r460';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4674,8 +4679,9 @@ function renderAlchemy(){ const a=state.training.alchemy, t=today();
   const stEl=document.getElementById('alchemyStreak'); if(stEl) stEl.textContent=trainStreak(a.history)+(a.history[t]?' 🔥':'');
   const btn=document.getElementById('alchemySeal'); if(btn){ if(a.history[t]){ btn.textContent=L('seal_done'); btn.disabled=true; btn.style.opacity=.55; } else { btn.textContent=L('seal_cta'); btn.disabled=false; btn.style.opacity=1; } }
   renderFuelDash(); renderFuelStatus(); renderCoach(); renderFuelLog(); renderFuelQuick(); renderProtocol();
-  const pb=document.getElementById('fuelPhotoBtn'); if(pb){ pb.textContent=fuelLoading==='photo'?'⏳ Reading your plate…':'📷 Snap or upload a meal'; pb.disabled=!!fuelLoading; }
+  const pb=document.getElementById('fuelPhotoBtn'); if(pb){ pb.textContent=fuelLoading==='photo'?'⏳ Reading your plate…':'📷 Snap a meal'; pb.disabled=!!fuelLoading; }
   const mb=document.getElementById('fuelMenuBtn'); if(mb){ mb.textContent=fuelLoading==='menu'?'⏳ Reading the menu…':'📜 Scan a menu — smart picks'; mb.disabled=!!fuelLoading; }
+  ['fuelPhotoUpBtn','fuelMenuUpBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!!fuelLoading; });
   const tb=document.getElementById('fuelTextBtn'); if(tb) tb.textContent=fuelLoading==='text'?'⏳':'✨';
   const sc=document.getElementById('fuelSearch'); if(sc) sc.checked=a.search!==false;
   const tf=document.getElementById('targetsForm'); if(tf&&tf.style.display!=='block'){ const tt=fuelTargets(); _tset('tKcal',tt.cal);_tset('tProtein',tt.p);_tset('tCarbs',tt.c);_tset('tFat',tt.f);_tset('tFib',tt.fib); }
@@ -4778,8 +4784,10 @@ function renderProtocol(){ const list=document.getElementById('protoList'); if(!
       if(e.target.closest('#targetsEdit')){ const tf=document.getElementById('targetsForm'); const tt=fuelTargets(); _tset('tKcal',tt.cal);_tset('tProtein',tt.p);_tset('tCarbs',tt.c);_tset('tFat',tt.f);_tset('tFib',tt.fib); tf.style.display='block'; return; }
       if(e.target.closest('#targetsCancel')){ document.getElementById('targetsForm').style.display='none'; renderAlchemy(); return; }
       if(e.target.closest('#targetsSave')){ saveTargets(); return; }
-      if(e.target.closest('#fuelPhotoBtn')){ if(fuelLoading) return; document.getElementById('fuelPhoto').click(); return; }
-      if(e.target.closest('#fuelMenuBtn')){ if(fuelLoading) return; document.getElementById('fuelMenu').click(); return; }
+      if(e.target.closest('#fuelPhotoBtn')){ if(fuelLoading) return; document.getElementById('fuelPhotoCam').click(); return; }
+      if(e.target.closest('#fuelPhotoUpBtn')){ if(fuelLoading) return; document.getElementById('fuelPhoto').click(); return; }
+      if(e.target.closest('#fuelMenuBtn')){ if(fuelLoading) return; document.getElementById('fuelMenuCam').click(); return; }
+      if(e.target.closest('#fuelMenuUpBtn')){ if(fuelLoading) return; document.getElementById('fuelMenu').click(); return; }
       if(e.target.closest('#fuelTextBtn')){ onFuelText(); return; }
       if(e.target.closest('#fuelCoachAsk')){ runFuelCoach(); return; }
       if(e.target.closest('#fuelCoachSend')){ onFuelCoachAsk(); return; }
@@ -4798,8 +4806,8 @@ function renderProtocol(){ const list=document.getElementById('protoList'); if(!
     pane.addEventListener('change', e=>{ if(forgeOnChange(e)) return; if(e.target.id==='fuelSearch'){ state.training.alchemy.search=e.target.checked; Store.save(state); } if(e.target.dataset.prototiming!=null){ protoUpdItem(e.target.dataset.prototiming,{timing:e.target.value}); } });
     pane.addEventListener('input', e=>{ if(forgeOnInput(e)) return; const t=e.target; if(t.dataset.protoname!=null) protoUpdItem(t.dataset.protoname,{name:t.value}); else if(t.dataset.protodose!=null) protoUpdItem(t.dataset.protodose,{dose:t.value}); else if(t.dataset.prototarget!=null) protoUpdItem(t.dataset.prototarget,{target:Math.max(500,+t.value||0)}); });
   }
-  const fp=document.getElementById('fuelPhoto'); if(fp) fp.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) onFuelPhoto(f); e.target.value=''; });
-  const fm=document.getElementById('fuelMenu'); if(fm) fm.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) onFuelMenu(f); e.target.value=''; });
+  ['fuelPhoto','fuelPhotoCam'].forEach(id=>{ const fp=document.getElementById(id); if(fp) fp.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) onFuelPhoto(f); e.target.value=''; }); });
+  ['fuelMenu','fuelMenuCam'].forEach(id=>{ const fm=document.getElementById(id); if(fm) fm.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) onFuelMenu(f); e.target.value=''; }); });
   // review overlay
   const ro=document.getElementById('reviewOverlay');
   if(ro){
