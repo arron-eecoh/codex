@@ -50,10 +50,18 @@ src+="\n;global.C={ get s(){return state}, set s(v){state=v}, get fgTimer(){retu
 try{ eval(src); }catch(e){ console.error('BOOT THREW:', e.message); process.exit(2); }
 
 /* ---------- suite runner ---------- */
+/* Pin baseState's clock (via clockOffset, which today() honors) to the first
+   20 days of an EVEN month → monthly exercise rotation is deterministically
+   Rotation A for every suite, regardless of when the harness runs. Suites
+   advancing the clock a few days stay inside the pinned month. */
+const ROT_PIN=(function(){ const now=new Date(); now.setHours(12,0,0,0);
+  for(let off=0;off<70;off++){ const d=new Date(now); d.setDate(d.getDate()+off);
+    if(((d.getFullYear()*12+d.getMonth())%2===0) && d.getDate()<=20) return off; }
+  return 0; })();
 global.baseState=function(){ const tr=global.C.trainingSeed();
   return {player:{name:'T',createdAt:'2026-06-01'},totalXp:0,stats:{body:0,energy:0,mind:0,craft:0,bond:0},tokens:0,wards:0,
     habits:[],log:[],shop:{desires:[],customOfferings:[],redeemed:[],goal:null},quests:[],
-    fortune:{mode:'off',actions:0,crits:0,boons:0,vouchers:[],ledger:[]},training:tr,clockOffset:0,version:1}; };
+    fortune:{mode:'off',actions:0,crits:0,boons:0,vouchers:[],ledger:[]},training:tr,clockOffset:ROT_PIN,version:1}; };
 global.tgt=function(sel,ds){ return {target:{closest:q=>q===sel?{dataset:ds||{}}:null}}; };
 let PASS=0,FAIL=0; const fails=[];
 global.ok=function(name,cond){ if(cond){PASS++;} else {FAIL++; fails.push(name);} };

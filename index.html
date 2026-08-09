@@ -2459,7 +2459,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.06-r460';
+const BUILD='2026.08.09-r461';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3751,16 +3751,16 @@ const F_TRAVEL_DAYS = {
       { ex: "Side Lying Leg Lifts", sets: 3, target: "12/side", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
       { ex: "Single Leg RDL (BW)", sets: 3, target: "10-12/side", unit: "reps", note: "Balance + hinge", bw: true },
-      { ex: "Split Squat Pallof Press (Band)", sets: 3, target: "8/side", unit: "reps", note: "CAL anti-rotation", bw: true } ]},
+      { ex: "Side Plank", sets: 3, target: "20-30s/side", unit: "sec", note: "CAL anti-rotation", bw: true } ]},
     { name: "Block 3", exercises: [
       { ex: "Cossack Squats (BW)", sets: 3, target: "8/side", unit: "reps", note: "Bodyweight", bw: true },
       { ex: "Wall Sit", sets: 3, target: "30-45s", unit: "sec", note: "CAL", bw: true },
       { ex: "Banded Hamstring Curls", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
   ]},
-  "Push": { activation: "Upper Activation", blocks: [
+  "Push A": { activation: "Upper Activation", blocks: [
     { name: "Block 1", exercises: [
       { ex: "Blast Off Push-ups", sets: 3, target: "5", unit: "reps", note: "Power, do first", bw: true },
-      { ex: "Banded Floor Press / Push-Up", sets: 3, target: "10-15", unit: "reps", note: "Band across back, press", bw: true },
+      { ex: "Banded Push-Up", sets: 3, target: "10-15", unit: "reps", note: "Band across back, press", bw: true },
       { ex: "Band Pull Aparts", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
       { ex: "Pike Pushups", sets: 3, target: "8-10", unit: "reps", note: "CAL toward wall HSPU", bw: true },
@@ -3769,19 +3769,124 @@ const F_TRAVEL_DAYS = {
       { ex: "Banded Overhead Press", sets: 3, target: "12-15", unit: "reps", note: "Stand on band", bw: true },
       { ex: "Archer Push-Up", sets: 3, target: "6-8/side", unit: "reps", note: "CAL", bw: true } ]},
   ]},
-  "Pull": { activation: "Upper Activation", blocks: [
+  "Push B": { activation: "Upper Activation", blocks: [
     { name: "Block 1", exercises: [
-      { ex: "Banded Pulldown", sets: 3, target: "12-15", unit: "reps", note: "Anchor band high", bw: true },
-      { ex: "Scapular Pull-Up / Band Retraction", sets: 3, target: "10", unit: "reps", note: "Activation, 2s hold", bw: true } ]},
+      { ex: "Banded Push Press", sets: 3, target: "10-12", unit: "reps", note: "Stand on band, drive from the legs", bw: true },
+      { ex: "Tempo Push-Up", sets: 3, target: "8-10", unit: "reps", note: "3s down, explode up", bw: true },
+      { ex: "Wall Slides", sets: 3, target: "10", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
-      { ex: "Banded Single Arm Row", sets: 3, target: "10-12/side", unit: "reps", note: "Anchor low, row", bw: true },
-      { ex: "Dead Hang (if bar)", sets: 3, target: "30-45s", unit: "sec", note: "Skip if no bar", bw: true } ]},
+      { ex: "Decline Push-Up", sets: 3, target: "8-12", unit: "reps", note: "Feet on chair/bed", bw: true },
+      { ex: "Shoulder Taps", sets: 3, target: "20", unit: "reps", note: "Core anti-rotation", bw: true } ]},
     { name: "Block 3", exercises: [
-      { ex: "Banded Face Pulls", sets: 3, target: "15", unit: "reps", note: "Rear delt", bw: true },
+      { ex: "Banded Lateral Raises", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, strict", bw: true },
+      { ex: "Diamond Push-Up", sets: 3, target: "8-12", unit: "reps", note: "Triceps, elbows tight", bw: true },
+      { ex: "Band Overhead Tricep Extension", sets: 3, target: "12-15", unit: "reps", note: "Band under foot, press overhead", bw: true } ]},
+  ]},
+  "Pull A": { activation: "Upper Activation", blocks: [
+    { name: "Block 1", exercises: [
+      { ex: "Banded Bent Over Row", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, hinge, row to hips", bw: true },
+      { ex: "Band Pull Aparts", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
+    { name: "Block 2", exercises: [
+      { ex: "Seated Banded Row", sets: 3, target: "12-15", unit: "reps", note: "Loop band around your feet, row", bw: true },
+      { ex: "Superman Pulls", sets: 3, target: "10", unit: "reps", note: "2s squeeze at the top", bw: true } ]},
+    { name: "Block 3", exercises: [
+      { ex: "Banded Face Pulls", sets: 3, target: "15", unit: "reps", note: "Hold band at arms' length, pull to face", bw: true },
       { ex: "Banded Bicep Curls", sets: 3, target: "12-15", unit: "reps", note: "Stand on band", bw: true },
       { ex: "Band Bent Over Rotations", sets: 3, target: "20", unit: "reps", note: "Activation", bw: true } ]},
   ]},
+  "Pull B": { activation: "Upper Activation", blocks: [
+    { name: "Block 1", exercises: [
+      { ex: "Banded Single Arm Row", sets: 3, target: "10-12/side", unit: "reps", note: "Step on band, hinge, row to hip", bw: true },
+      { ex: "Wall Angels", sets: 3, target: "10", unit: "reps", note: "Activation, slow", bw: true } ]},
+    { name: "Block 2", exercises: [
+      { ex: "Reverse Snow Angels", sets: 3, target: "12", unit: "reps", note: "Prone, slow arcs, thumbs up", bw: true },
+      { ex: "Banded Shrugs", sets: 3, target: "15", unit: "reps", note: "Stand on band, pause at the top", bw: true } ]},
+    { name: "Block 3", exercises: [
+      { ex: "Banded Rear Delt Fly", sets: 3, target: "15", unit: "reps", note: "Hold band, hinge, pull apart", bw: true },
+      { ex: "Banded Hammer Curls", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, neutral grip", bw: true },
+      { ex: "Prone Superman Arm Rotations", sets: 3, target: "10", unit: "reps", note: "Activation", bw: true } ]},
+  ]},
 };
+/* ---- monthly rotation: each slot has a same-pattern alternate; odd months run
+   the alternates (Rotation B), even months the originals (Rotation A). Derived
+   from today()'s year+month — deterministic, offline, identical on all devices.
+   Alternates for names that appear in travel days stay bodyweight / self-held band. */
+const F_EX_ALTS = {
+  "Broad Jump":[{ex:"Tuck Jump",note:"Max height, soft landings"}],
+  "Goblet Squat":[{ex:"Heels Elevated Goblet Squat",note:"Plates under heels, upright torso"}],
+  "X Band Walk":[{ex:"Monster Walk",note:"Band at ankles, stay low"}],
+  "RFESS":[{ex:"Walking Lunges",note:"DBs in hand, long steps"}],
+  "Hollow Body Hold":[{ex:"Dead Bug",target:"10/side",unit:"reps",note:"Slow, low back pinned"}],
+  "Skater Squat":[{ex:"Shrimp Squat",note:"CAL skill, hold back foot"}],
+  "Copenhagen Plank":[{ex:"Side Plank + Leg Raise",note:"Top leg lifts, slow"}],
+  "Trap Bar Farmer's Carry":[{ex:"Suitcase Carry",target:"40/side",note:"One side loaded — resist the lean"}],
+  "Kettlebell Swings":[{ex:"Single Arm KB Swing",target:"8/side",note:"Crisp hinge, square hips"}],
+  "Trap Bar Deadlift":[{ex:"Romanian Deadlift",note:"Hips back, stretch hamstrings, neutral spine"}],
+  "Side Lying Leg Lifts":[{ex:"Clamshells",target:"15/side",note:"Band above knees"}],
+  "Single Leg RDL":[{ex:"B-Stance RDL",note:"Back toe for balance, load the front leg"}],
+  "Split Squat Pallof Press":[{ex:"Tall Kneeling Pallof Press",note:"CAL anti-rotation"}],
+  "Cossack Squats":[{ex:"Lateral Lunge",target:"8/side",note:"Goblet hold"}],
+  "Wall Sit":[{ex:"Glute Bridge March",target:"10/side",unit:"reps",note:"Hips high, slow"}],
+  "Banded Hamstring Curls":[{ex:"Sliding Leg Curls",target:"10-12",note:"Towel/sliders on smooth floor"}],
+  "Blast Off Push-ups":[{ex:"Clapping Push-Up",target:"5",note:"Max intent, do first"}],
+  "DB Bench Press":[{ex:"DB Floor Press",note:"Pause elbows at the floor"}],
+  "Band Pull Aparts":[{ex:"Prone Y Raises",target:"12",note:"Thumbs up, squeeze"}],
+  "Pike Pushups":[{ex:"Wall Walk",target:"3-5",note:"CAL toward HSPU"}],
+  "Hollow Body Shotguns":[{ex:"V-Ups",target:"10-12",note:"Core"}],
+  "Seated DB Shoulder Press":[{ex:"Z Press",note:"Seated on floor, strict"}],
+  "Archer Push-Up":[{ex:"Pseudo Planche Push-Up",target:"6-10",note:"Hands at waist, lean forward"}],
+  "DB Push Press":[{ex:"Single Arm DB Push Press",target:"5/side",note:"Drive from the legs"}],
+  "Weighted Push Up":[{ex:"Deficit Push-Up",bw:true,target:"8-12",note:"Hands on books/plates, deep stretch"}],
+  "Banded Face Pulls":[{ex:"Band High Pull Apart",note:"Pull to eye level"}],
+  "Arnold Press":[{ex:"Standing DB Overhead Press",note:"Brace, no leg drive"}],
+  "Bench Dip":[{ex:"Close Grip Push-Up",target:"10-12",note:"Elbows tight"}],
+  "DB Chest Fly":[{ex:"DB Pullover",target:"10-12",note:"Slight elbow bend, big stretch"}],
+  "Band Overhead Tricep Extension":[{ex:"Banded Tricep Kickback",note:"Stand on band, hinge, lock out"}],
+  "Shoulder Taps":[{ex:"Bird Dog",target:"10/side",note:"Slow, hips still"}],
+  "Pull-Up":[{ex:"Chin-Up",note:"Underhand — add pack once 3x8 easy"}],
+  "Single Arm DB Row":[{ex:"Chest Supported DB Row",target:"8-10",note:"Chest on incline bench, strict"}],
+  "Dead Hang":[{ex:"Towel Dead Hang",note:"Towels over bar — crush grip"}],
+  "Inverted Row":[{ex:"Wide Grip Inverted Row",note:"Elbows flared, upper back"}],
+  "Hammer Curl/Reverse Curl":[{ex:"Zottman Curl",target:"10",note:"Curl up, rotate, lower slow"}],
+  "Band Bent Over Rotations":[{ex:"Band No Money Drill",target:"15",note:"Elbows pinned, rotate out"}],
+  "Bench Straddle Row":[{ex:"Two Point DB Row",target:"8-10/side",note:"Hinge, free hand on knee, brace"}],
+  "Kneeling Banded Lat Pulldown":[{ex:"Straight Arm Band Pulldown",note:"Arc to hips, lats only"}],
+  "Prone Superman Arm Rotations":[{ex:"Prone Swimmers",target:"8",note:"Slow, full arc"}],
+  "Kettlebell Row Switches":[{ex:"Renegade Row",target:"6/side",note:"Plank on DBs, no hip sway"}],
+  "Incline Bench Bicep Curls":[{ex:"Concentration Curl",target:"10/side",note:"Elbow braced, full squeeze"}],
+  "Bent Over Lateral Raises":[{ex:"Prone Rear Delt Raise",note:"Chest on incline bench"}],
+  "Trap Bar Shrug":[{ex:"DB Shrug",note:"Pause 1s at the top"}],
+  "Squat Jumps":[{ex:"Split Squat Jumps",target:"5/side",note:"Switch in the air, soft landings"}],
+  "Banded Goblet Squat":[{ex:"Tempo BW Squat",target:"12-15",note:"3s down, explode up"}],
+  "Bulgarian Split Squat (BW)":[{ex:"Step-Ups (BW)",target:"12/side",note:"Chair/bed, control the way down"}],
+  "Single Leg RDL (BW)":[{ex:"Banded Good Morning",target:"15",note:"Band under feet, over shoulders"}],
+  "Cossack Squats (BW)":[{ex:"Curtsy Lunge",target:"10/side",note:"Slow, upright torso"}],
+  "Banded RDL":[{ex:"Single Leg Glute Bridge",target:"12/side",note:"Drive through the heel"}],
+  "Side Plank":[{ex:"Bird Dog",target:"10/side",unit:"reps",note:"Slow, hips still"}],
+  "Banded Push-Up":[{ex:"Deficit Push-Up",target:"8-12",note:"Hands on books, deep stretch"}],
+  "Banded Overhead Press":[{ex:"Seated Banded Shoulder Press",note:"Sit on band, press"}],
+  "Banded Push Press":[{ex:"Split Stance Banded Press",note:"Band under front foot, drive"}],
+  "Tempo Push-Up":[{ex:"Feet Elevated Push-Up",target:"8-12",note:"Feet on chair/bed"}],
+  "Wall Slides":[{ex:"Scap Push-Up",target:"12",note:"Arms locked — pinch and spread the blades"}],
+  "Decline Push-Up":[{ex:"Hindu Push-Up",target:"8-10",note:"Sweeping arc"}],
+  "Banded Lateral Raises":[{ex:"Banded Front Raise",note:"Stand on band, to eye level"}],
+  "Diamond Push-Up":[{ex:"Sphinx Push-Up",target:"8-10",note:"Forearms to lockout — triceps"}],
+  "Banded Bent Over Row":[{ex:"Banded Gorilla Row",target:"8/side",note:"Both feet on band, alternate"}],
+  "Seated Banded Row":[{ex:"Banded High Row",note:"Hinge 45°, pull to chest"}],
+  "Superman Pulls":[{ex:"Superman Hold",target:"20-30s",unit:"sec",note:"Squeeze the whole back line"}],
+  "Banded Bicep Curls":[{ex:"Banded 21s",target:"21",note:"7 bottom + 7 top + 7 full"}],
+  "Banded Single Arm Row":[{ex:"Half-Kneeling Banded Row",target:"10-12/side",note:"Band under front foot"}],
+  "Wall Angels":[{ex:"Prone T Raises",target:"12",note:"Thumbs up, squeeze"}],
+  "Reverse Snow Angels":[{ex:"Y-W Raises",target:"10",note:"Prone — Y then W, slow"}],
+  "Banded Shrugs":[{ex:"Banded Upright Row",target:"12-15",note:"Stand on band, lead with elbows"}],
+  "Banded Rear Delt Fly":[{ex:"Bent Over Band Pull Apart",note:"Hinged, pull apart at 45°"}],
+  "Banded Hammer Curls":[{ex:"Banded Drag Curl",note:"Elbows back, drag along torso"}],
+};
+function fgMonthIdx(len){ const t=today(); return ((+t.slice(0,4))*12+(+t.slice(5,7)-1))%(len+1); }
+function fgMonthEx(e){ const pool=F_EX_ALTS[e.ex]; if(!pool||!pool.length) return e;
+  const i=fgMonthIdx(pool.length); if(!i) return e;
+  const o=Object.assign({},e,pool[i-1]); o.sets=e.sets; o.e=e.e; return o; }
+function fgRotateDay(src){ return { activation:src.activation, blocks:src.blocks.map(b=>({name:b.name, exercises:b.exercises.map(fgMonthEx)})) }; }
 const F_CIRCUITS = [
   { name: "5 Exercise Strength & Conditioning", work: "50s / 10s", rounds: "3-4", equip: "Light-medium DBs",
     seq: [
@@ -3923,7 +4028,7 @@ async function forgeStart(key){ const f=fgState();
   if(f.active){ if(f.active.type===key){ f.screen='session'; commit(); return; } const _ck=fgCheckedCount(f.active); if(_ck>0){ const ok=await uiConfirm('You have an in-progress '+f.active.type+' with '+_ck+' set'+(_ck===1?'':'s')+' checked. Discard it and start '+key+'? (Or Resume it from the picker to keep it.)','Discard & start'); if(!ok) return; } }
   const def=fgTypeDef(key), t=today();
   const a={ type:key, kind:def.kind, date:t, rating:0, feelPhys:null, feelMind:null, note:'' };
-  if(def.kind==='lift'){ const src=f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key];
+  if(def.kind==='lift'){ const src=fgRotateDay(f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key]);
     const defs=src.blocks.reduce((acc,b)=>acc.concat(b.exercises),[]); const sugg=forgeSuggest(f.log,defs);
     a.activation=src.activation;
     a.blocks=src.blocks.map(b=>({ name:b.name, exercises:b.exercises.map(e=>{ const s=sugg[e.ex]||{}; const n=e.sets||3;
@@ -4356,7 +4461,8 @@ function fgNextVariant(fam){ if(fgVariantSel[fam]) return fgVariantSel[fam];
   const f=fgState(); const last=(f.sessions||[]).slice().reverse().find(x=>String(x.type).indexOf(fam+' ')===0);
   return (last&&/ A$/.test(last.type))?'B':'A'; }
 function renderForgePicker(){ const f=fgState(); const dots=forgeDots(f.sessions,f.focus); const el=document.getElementById('forge-picker'); if(!el) return;
-  let h=(f.active?('<div class="fg-resume"><div class="fg-resume-txt">⏸ In progress · <b>'+esc(f.active.type)+'</b>'+((fgCheckedCount(f.active)||0)>0?' · '+fgCheckedCount(f.active)+' set'+(fgCheckedCount(f.active)===1?'':'s')+' checked':'')+'</div><button class="fg-resume-go" data-fgresume="1">Resume</button><button class="fg-resume-x" data-fgdiscard="1">Discard</button></div>'):'')+'<div class="fg-focus-lab">Focus phase</div><div class="fg-focus">'+F_FOCUS_ORDER.map(m=>'<button class="fg-focus-btn'+(f.focus===m?' on':'')+'" data-fgfocus="'+m+'">'+m+'</button>').join('')+'</div>';
+  let h=(f.active?('<div class="fg-resume"><div class="fg-resume-txt">⏸ In progress · <b>'+esc(f.active.type)+'</b>'+((fgCheckedCount(f.active)||0)>0?' · '+fgCheckedCount(f.active)+' set'+(fgCheckedCount(f.active)===1?'':'s')+' checked':'')+'</div><button class="fg-resume-go" data-fgresume="1">Resume</button><button class="fg-resume-x" data-fgdiscard="1">Discard</button></div>'):'')+'<div class="fg-focus-lab">Focus phase</div><div class="fg-focus">'+F_FOCUS_ORDER.map(m=>'<button class="fg-focus-btn'+(f.focus===m?' on':'')+'" data-fgfocus="'+m+'">'+m+'</button>').join('')+'</div>'
+    +'<div class="fg-ex-note" style="margin:4px 2px 0">🔁 Rotation '+(fgMonthIdx(1)?'B':'A')+' — exercises refresh on the 1st of each month</div>';
   try{ const _y=dayShift(today(),-1); const _al=state.training.alchemy; if(_al&&_al.days&&(_al.days[_y]||[]).length&&!_al.history[_y]){ h+='<div class="fg-fuel-note">🍽 Yesterday\u2019s fuel went unsealed — if you ran light, favour a moderate day.</div>'; } }catch(e){}
   h+='<label class="fg-travel"><input type="checkbox" id="fgTravel"'+(f.travel?' checked':'')+'> ✈️ Travel mode — bodyweight + bands only</label>';
   const blue=Object.keys(dots).find(k=>dots[k]==='blue');
