@@ -51,12 +51,12 @@ try{ eval(src); }catch(e){ console.error('BOOT THREW:', e.message); process.exit
 
 /* ---------- suite runner ---------- */
 /* Pin baseState's clock (via clockOffset, which today() honors) to the first
-   20 days of an EVEN month → monthly exercise rotation is deterministically
-   Rotation A for every suite, regardless of when the harness runs. Suites
-   advancing the clock a few days stay inside the pinned month. */
+   20 days of a month whose index is divisible by 4 → monthly exercise rotation
+   is deterministically Rotation A for every suite, regardless of when the
+   harness runs. Suites advancing the clock a few days stay inside the month. */
 const ROT_PIN=(function(){ const now=new Date(); now.setHours(12,0,0,0);
-  for(let off=0;off<70;off++){ const d=new Date(now); d.setDate(d.getDate()+off);
-    if(((d.getFullYear()*12+d.getMonth())%2===0) && d.getDate()<=20) return off; }
+  for(let off=0;off<130;off++){ const d=new Date(now); d.setDate(d.getDate()+off);
+    if(((d.getFullYear()*12+d.getMonth())%4===0) && d.getDate()<=20) return off; }
   return 0; })();
 global.baseState=function(){ const tr=global.C.trainingSeed();
   return {player:{name:'T',createdAt:'2026-06-01'},totalXp:0,stats:{body:0,energy:0,mind:0,craft:0,bond:0},tokens:0,wards:0,
