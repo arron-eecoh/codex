@@ -71,6 +71,15 @@ module.exports = async function(C){
   C.forgeCancel();
   C.s=baseState();
 
+  // ---- HARDWIRED: every exercise, in every day and every rotation, ships a real ⓘ how-to ----
+  // This is the permanent guarantee: add any exercise (base or alternate) without an
+  // EX_INFO entry of substance and the build fails — no month or cycle can skip it.
+  const allNames=new Set();
+  [T,L].forEach(D=>Object.keys(D).forEach(k=>D[k].blocks.forEach(b=>b.exercises.forEach(e=>allNames.add(e.ex)))));
+  Object.keys(ALTS).forEach(k=>ALTS[k].forEach(a=>allNames.add(a.ex)));
+  const noInfo=[...allNames].filter(n=>!(C.EX_INFO[n]&&C.EX_INFO[n].length>=60));
+  ok('every exercise in every rotation has a real how-to ('+allNames.size+' checked)'+(noInfo.length?' — MISSING: '+noInfo.slice(0,10).join(', ')+(noInfo.length>10?' …':''):''), noInfo.length===0);
+
   // picker shows which of the four rotations is live
   const src=require('fs').readFileSync(global.__APPFILE,'utf8');
   ok('picker names the active rotation (A-D) and the monthly refresh', /String\.fromCharCode\(65\+fgMonthIdx\(3\)\)/.test(src) && /refresh on the 1st/.test(src));
