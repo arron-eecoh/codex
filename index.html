@@ -2459,7 +2459,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.06-r460';
+const BUILD='2026.08.09-r462';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3751,16 +3751,16 @@ const F_TRAVEL_DAYS = {
       { ex: "Side Lying Leg Lifts", sets: 3, target: "12/side", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
       { ex: "Single Leg RDL (BW)", sets: 3, target: "10-12/side", unit: "reps", note: "Balance + hinge", bw: true },
-      { ex: "Split Squat Pallof Press (Band)", sets: 3, target: "8/side", unit: "reps", note: "CAL anti-rotation", bw: true } ]},
+      { ex: "Side Plank", sets: 3, target: "20-30s/side", unit: "sec", note: "CAL anti-rotation", bw: true } ]},
     { name: "Block 3", exercises: [
       { ex: "Cossack Squats (BW)", sets: 3, target: "8/side", unit: "reps", note: "Bodyweight", bw: true },
       { ex: "Wall Sit", sets: 3, target: "30-45s", unit: "sec", note: "CAL", bw: true },
       { ex: "Banded Hamstring Curls", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
   ]},
-  "Push": { activation: "Upper Activation", blocks: [
+  "Push A": { activation: "Upper Activation", blocks: [
     { name: "Block 1", exercises: [
       { ex: "Blast Off Push-ups", sets: 3, target: "5", unit: "reps", note: "Power, do first", bw: true },
-      { ex: "Banded Floor Press / Push-Up", sets: 3, target: "10-15", unit: "reps", note: "Band across back, press", bw: true },
+      { ex: "Banded Push-Up", sets: 3, target: "10-15", unit: "reps", note: "Band across back, press", bw: true },
       { ex: "Band Pull Aparts", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
       { ex: "Pike Pushups", sets: 3, target: "8-10", unit: "reps", note: "CAL toward wall HSPU", bw: true },
@@ -3769,19 +3769,124 @@ const F_TRAVEL_DAYS = {
       { ex: "Banded Overhead Press", sets: 3, target: "12-15", unit: "reps", note: "Stand on band", bw: true },
       { ex: "Archer Push-Up", sets: 3, target: "6-8/side", unit: "reps", note: "CAL", bw: true } ]},
   ]},
-  "Pull": { activation: "Upper Activation", blocks: [
+  "Push B": { activation: "Upper Activation", blocks: [
     { name: "Block 1", exercises: [
-      { ex: "Banded Pulldown", sets: 3, target: "12-15", unit: "reps", note: "Anchor band high", bw: true },
-      { ex: "Scapular Pull-Up / Band Retraction", sets: 3, target: "10", unit: "reps", note: "Activation, 2s hold", bw: true } ]},
+      { ex: "Banded Push Press", sets: 3, target: "10-12", unit: "reps", note: "Stand on band, drive from the legs", bw: true },
+      { ex: "Tempo Push-Up", sets: 3, target: "8-10", unit: "reps", note: "3s down, explode up", bw: true },
+      { ex: "Wall Slides", sets: 3, target: "10", unit: "reps", note: "Activation", bw: true } ]},
     { name: "Block 2", exercises: [
-      { ex: "Banded Single Arm Row", sets: 3, target: "10-12/side", unit: "reps", note: "Anchor low, row", bw: true },
-      { ex: "Dead Hang (if bar)", sets: 3, target: "30-45s", unit: "sec", note: "Skip if no bar", bw: true } ]},
+      { ex: "Decline Push-Up", sets: 3, target: "8-12", unit: "reps", note: "Feet on chair/bed", bw: true },
+      { ex: "Shoulder Taps", sets: 3, target: "20", unit: "reps", note: "Core anti-rotation", bw: true } ]},
     { name: "Block 3", exercises: [
-      { ex: "Banded Face Pulls", sets: 3, target: "15", unit: "reps", note: "Rear delt", bw: true },
+      { ex: "Banded Lateral Raises", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, strict", bw: true },
+      { ex: "Diamond Push-Up", sets: 3, target: "8-12", unit: "reps", note: "Triceps, elbows tight", bw: true },
+      { ex: "Band Overhead Tricep Extension", sets: 3, target: "12-15", unit: "reps", note: "Band under foot, press overhead", bw: true } ]},
+  ]},
+  "Pull A": { activation: "Upper Activation", blocks: [
+    { name: "Block 1", exercises: [
+      { ex: "Banded Bent Over Row", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, hinge, row to hips", bw: true },
+      { ex: "Band Pull Aparts", sets: 3, target: "15", unit: "reps", note: "Activation", bw: true } ]},
+    { name: "Block 2", exercises: [
+      { ex: "Seated Banded Row", sets: 3, target: "12-15", unit: "reps", note: "Loop band around your feet, row", bw: true },
+      { ex: "Superman Pulls", sets: 3, target: "10", unit: "reps", note: "2s squeeze at the top", bw: true } ]},
+    { name: "Block 3", exercises: [
+      { ex: "Banded Face Pulls", sets: 3, target: "15", unit: "reps", note: "Hold band at arms' length, pull to face", bw: true },
       { ex: "Banded Bicep Curls", sets: 3, target: "12-15", unit: "reps", note: "Stand on band", bw: true },
       { ex: "Band Bent Over Rotations", sets: 3, target: "20", unit: "reps", note: "Activation", bw: true } ]},
   ]},
+  "Pull B": { activation: "Upper Activation", blocks: [
+    { name: "Block 1", exercises: [
+      { ex: "Banded Single Arm Row", sets: 3, target: "10-12/side", unit: "reps", note: "Step on band, hinge, row to hip", bw: true },
+      { ex: "Wall Angels", sets: 3, target: "10", unit: "reps", note: "Activation, slow", bw: true } ]},
+    { name: "Block 2", exercises: [
+      { ex: "Reverse Snow Angels", sets: 3, target: "12", unit: "reps", note: "Prone, slow arcs, thumbs up", bw: true },
+      { ex: "Banded Shrugs", sets: 3, target: "15", unit: "reps", note: "Stand on band, pause at the top", bw: true } ]},
+    { name: "Block 3", exercises: [
+      { ex: "Banded Rear Delt Fly", sets: 3, target: "15", unit: "reps", note: "Hold band, hinge, pull apart", bw: true },
+      { ex: "Banded Hammer Curls", sets: 3, target: "12-15", unit: "reps", note: "Stand on band, neutral grip", bw: true },
+      { ex: "Prone Superman Arm Rotations", sets: 3, target: "10", unit: "reps", note: "Activation", bw: true } ]},
+  ]},
 };
+/* ---- monthly rotation: each slot has a same-pattern alternate; odd months run
+   the alternates (Rotation B), even months the originals (Rotation A). Derived
+   from today()'s year+month — deterministic, offline, identical on all devices.
+   Alternates for names that appear in travel days stay bodyweight / self-held band. */
+const F_EX_ALTS = {
+  "Broad Jump":[{ex:"Tuck Jump",note:"Max height, soft landings"},{ex:"Box Jump",note:"Step down, reset each rep"},{ex:"Lateral Bound",target:"3/side",note:"Stick each landing"}],
+  "Goblet Squat":[{ex:"Heels Elevated Goblet Squat",note:"Plates under heels, upright torso"},{ex:"Double DB Front Squat",note:"DBs racked at shoulders"},{ex:"Goblet Box Squat",note:"Sit back, pause, drive"}],
+  "X Band Walk":[{ex:"Monster Walk",note:"Band at ankles, stay low"},{ex:"Banded Glute Bridge Abduction",target:"15",note:"Bridge, knees out against band"},{ex:"Standing Band Hip Abduction",target:"12/side",note:"Tall, strict"}],
+  "RFESS":[{ex:"Walking Lunges",note:"DBs in hand, long steps"},{ex:"Reverse Lunge",target:"8/side",note:"DBs, knee tracks the toe"},{ex:"Front Foot Elevated Split Squat",target:"8/side",note:"Front foot on plate"}],
+  "Hollow Body Hold":[{ex:"Dead Bug",target:"10/side",unit:"reps",note:"Slow, low back pinned"},{ex:"Hollow Rocks",target:"10-15",unit:"reps",note:"Small rocks, shape locked"},{ex:"Reverse Crunch",target:"12",unit:"reps",note:"Slow lower"}],
+  "Skater Squat":[{ex:"Shrimp Squat",note:"CAL skill, hold back foot"},{ex:"Box Pistol",target:"5/side",note:"To low chair/box, control down"},{ex:"Assisted Sissy Squat",target:"6-10",note:"Light fingertip support"}],
+  "Copenhagen Plank":[{ex:"Side Plank + Leg Raise",note:"Top leg lifts, slow"},{ex:"Short Lever Copenhagen",note:"Knee on chair/bed edge"},{ex:"Adductor Squeeze Bridge",note:"Pillow between knees, bridge and squeeze"}],
+  "Trap Bar Farmer's Carry":[{ex:"Suitcase Carry",target:"40/side",note:"One side loaded — resist the lean"},{ex:"Overhead DB Carry",target:"30/side",note:"Locked out, ribs down"},{ex:"Front Rack KB Carry",target:"40",note:"Elbows in, braced"}],
+  "Kettlebell Swings":[{ex:"Single Arm KB Swing",target:"8/side",note:"Crisp hinge, square hips"},{ex:"Alternating KB Swing",target:"10",note:"Switch at the top"},{ex:"Dead-Stop KB Swing",target:"8",note:"Reset each rep, explode"}],
+  "Trap Bar Deadlift":[{ex:"Romanian Deadlift",note:"Hips back, stretch hamstrings, neutral spine"},{ex:"Sumo DB Deadlift",target:"8",note:"Wide stance, knees out"},{ex:"Paused Trap Bar Deadlift",target:"4-5",note:"1s pause at the knee"}],
+  "Side Lying Leg Lifts":[{ex:"Clamshells",target:"15/side",note:"Band above knees"},{ex:"Fire Hydrants",target:"12/side",note:"Hips square, slow"},{ex:"Frog Pumps",target:"15",note:"Soles together, drive hips"}],
+  "Single Leg RDL":[{ex:"B-Stance RDL",note:"Back toe for balance, load the front leg"},{ex:"Single Leg Hip Thrust",target:"10/side",note:"Shoulders on bench"},{ex:"Deficit RDL",note:"Stand on a plate, extra stretch"}],
+  "Split Squat Pallof Press":[{ex:"Tall Kneeling Pallof Press",note:"CAL anti-rotation"},{ex:"Standing Pallof Press",note:"Feet square, resist the turn"},{ex:"Pallof Rotation",target:"8/side",note:"Slow controlled arc"}],
+  "Cossack Squats":[{ex:"Lateral Lunge",target:"8/side",note:"Goblet hold"},{ex:"Lateral Step-Up",target:"8/side",note:"Slow down, drive up"},{ex:"Adductor Slide Lunge",target:"8/side",note:"Slider under one foot"}],
+  "Wall Sit":[{ex:"Glute Bridge March",target:"10/side",unit:"reps",note:"Hips high, slow"},{ex:"1.5-Rep BW Squat",target:"10",unit:"reps",note:"Bottom half, then stand"},{ex:"Wall Sit + Calf Raise",note:"Heels up and down in the hold"}],
+  "Banded Hamstring Curls":[{ex:"Sliding Leg Curls",target:"10-12",note:"Towel/sliders on smooth floor"},{ex:"Glute Bridge Walkout",target:"8",note:"Bridge, walk heels out and back"},{ex:"Prone Band Leg Curl",note:"Band looped around ankles, lie prone"}],
+  "Blast Off Push-ups":[{ex:"Clapping Push-Up",target:"5",note:"Max intent, do first"},{ex:"Explosive Hand-Release Push-Up",target:"6",note:"Hands off, punch the floor away"},{ex:"Push-Up Jacks",target:"8",note:"Feet jump wide on the way down"}],
+  "DB Bench Press":[{ex:"DB Floor Press",note:"Pause elbows at the floor"},{ex:"Incline DB Press",note:"Bench at 30°"},{ex:"Single Arm DB Bench Press",target:"6-8/side",note:"Brace hard, no roll"}],
+  "Band Pull Aparts":[{ex:"Prone Y Raises",target:"12",note:"Thumbs up, squeeze"},{ex:"Band Overhead Pull Apart",note:"Arms overhead, pull to shoulders"},{ex:"Prone W Raises",target:"12",note:"Elbows to pockets, squeeze"}],
+  "Pike Pushups":[{ex:"Wall Walk",target:"3-5",note:"CAL toward HSPU"},{ex:"Feet Elevated Pike Push-Up",target:"6-8",note:"Feet on chair, hips high"},{ex:"Wall HSPU Negatives",target:"3-5",note:"Slow lower, kick down safely"}],
+  "Hollow Body Shotguns":[{ex:"V-Ups",target:"10-12",note:"Core"},{ex:"Flutter Kicks",target:"20",note:"Low back pinned"},{ex:"L-Sit Tuck Hold",target:"15-20s",unit:"sec",note:"Knees tucked, shoulders down"}],
+  "Seated DB Shoulder Press":[{ex:"Z Press",note:"Seated on floor, strict"},{ex:"Half-Kneeling Single Arm Press",target:"6-8/side",note:"Glute tight, ribs down"},{ex:"Standing Alternating DB Press",target:"6/side",note:"No lean"}],
+  "Archer Push-Up":[{ex:"Pseudo Planche Push-Up",target:"6-10",note:"Hands at waist, lean forward"},{ex:"Typewriter Push-Up",target:"5/side",note:"Slide low across"},{ex:"Uneven Push-Up",target:"6/side",note:"One hand on a book/step"}],
+  "DB Push Press":[{ex:"Single Arm DB Push Press",target:"5/side",note:"Drive from the legs"},{ex:"DB Thruster",target:"6-8",note:"Squat straight into the press"},{ex:"DB Seesaw Press",target:"6/side",note:"Alternate, stay tall"}],
+  "Weighted Push Up":[{ex:"Deficit Push-Up",bw:true,target:"8-12",note:"Hands on books/plates, deep stretch"},{ex:"Banded Push-Up",bw:true,target:"10-15",note:"Band across the back"},{ex:"Feet Elevated Weighted Push-Up",note:"Pack on, feet on bench"}],
+  "Banded Face Pulls":[{ex:"Band High Pull Apart",note:"Pull to eye level"},{ex:"Prone Cuban Rotation",bw:true,target:"10",note:"Elbows 90°, rotate up"},{ex:"Band Tear Apart (High-Low)",note:"Diagonal pull aparts, alternate sides"}],
+  "Arnold Press":[{ex:"Standing DB Overhead Press",note:"Brace, no leg drive"},{ex:"Lateral + Front Raise Combo",target:"8+8",note:"Light, strict"},{ex:"Kneeling DB Press",target:"8-10",note:"Both knees down, ribs stacked"}],
+  "Bench Dip":[{ex:"Close Grip Push-Up",target:"10-12",note:"Elbows tight"},{ex:"Bodyweight Skull Crusher",note:"Hands on bench edge, lower head under"},{ex:"Diamond Push-Up",target:"8-12",note:"Triceps, elbows tight"}],
+  "DB Chest Fly":[{ex:"DB Pullover",target:"10-12",note:"Slight elbow bend, big stretch"},{ex:"Floor Fly",note:"Pause lightly at the floor"},{ex:"DB Squeeze Press",target:"8-10",note:"DBs pressed together"}],
+  "Band Overhead Tricep Extension":[{ex:"Banded Tricep Kickback",note:"Stand on band, hinge, lock out"},{ex:"Single Arm Band OH Extension",target:"10/side",note:"Elbow tight to head"},{ex:"Wall Tricep Extension",target:"8-12",note:"Hands on wall/desk, lower head through"}],
+  "Shoulder Taps":[{ex:"Bird Dog",target:"10/side",note:"Slow, hips still"},{ex:"Plank Reach-Outs",target:"8/side",note:"Reach far, hips quiet"},{ex:"Side Plank Reach Through",target:"8/side",note:"Thread and rotate"}],
+  "Pull-Up":[{ex:"Chin-Up",note:"Underhand — add pack once 3x8 easy"},{ex:"Neutral Grip Pull-Up",note:"If handles allow, else mix grip"},{ex:"Wide Grip Pull-Up",note:"Chest to bar intent"}],
+  "Single Arm DB Row":[{ex:"Chest Supported DB Row",target:"8-10",note:"Chest on incline bench, strict"},{ex:"Kroc Row",target:"12-15/side",note:"Heavy, controlled body english"},{ex:"Dead-Stop DB Row",target:"8/side",note:"DB rests on floor each rep"}],
+  "Dead Hang":[{ex:"Towel Dead Hang",note:"Towels over bar — crush grip"},{ex:"Single Arm Assisted Hang",target:"15-20s/side",note:"Other hand light assist"},{ex:"Weighted Dead Hang",note:"Pack on, long spine"}],
+  "Inverted Row":[{ex:"Wide Grip Inverted Row",note:"Elbows flared, upper back"},{ex:"Underhand Inverted Row",note:"Bar to sternum, squeeze"},{ex:"Slow Eccentric Inverted Row",note:"3s down each rep"}],
+  "Hammer Curl/Reverse Curl":[{ex:"Zottman Curl",target:"10",note:"Curl up, rotate, lower slow"},{ex:"Cross Body Hammer Curl",target:"10/side",note:"Across the torso"},{ex:"Waiter Curl",target:"10-12",note:"DB held like a tray"}],
+  "Band Bent Over Rotations":[{ex:"Band No Money Drill",target:"15",note:"Elbows pinned, rotate out"},{ex:"Band External Rotation",target:"12/side",note:"Elbow pinned at the side"},{ex:"Band Archer Pull",target:"8/side",note:"Draw-the-bow, slow"}],
+  "Bench Straddle Row":[{ex:"Two Point DB Row",target:"8-10/side",note:"Hinge, free hand on knee, brace"},{ex:"Seal Row",note:"Lie prone on flat bench, strict"},{ex:"Batwing Row",target:"8",note:"2s squeeze at the top"}],
+  "Kneeling Banded Lat Pulldown":[{ex:"Straight Arm Band Pulldown",note:"Arc to hips, lats only"},{ex:"Single Arm Band Pulldown",target:"10/side",note:"Elbow to hip"},{ex:"Floor Band Pullover",target:"12-15",note:"Lie down, band under feet, arc overhead"}],
+  "Prone Superman Arm Rotations":[{ex:"Prone Swimmers",target:"8",note:"Slow, full arc"},{ex:"Prone Arm Circles",target:"10",note:"Small circles each way"},{ex:"Superman Y-Hold",target:"15-20s",unit:"sec",note:"Arms in a Y, squeeze"}],
+  "Kettlebell Row Switches":[{ex:"Renegade Row",target:"6/side",note:"Plank on DBs, no hip sway"},{ex:"Double KB Bent Over Row",target:"8",note:"Flat back, row both"},{ex:"KB High Pull",target:"8",note:"Light — elbow high, snappy"}],
+  "Incline Bench Bicep Curls":[{ex:"Concentration Curl",target:"10/side",note:"Elbow braced, full squeeze"},{ex:"Spider Curl",note:"Chest on incline, arms hang"},{ex:"Seated Alternating DB Curl",target:"10/side",note:"No swing"}],
+  "Bent Over Lateral Raises":[{ex:"Prone Rear Delt Raise",note:"Chest on incline bench"},{ex:"Powell Raise",target:"10/side",note:"Side lying, strict arc"},{ex:"Prone T Raises",target:"12",note:"Thumbs up, squeeze"}],
+  "Trap Bar Shrug":[{ex:"DB Shrug",note:"Pause 1s at the top"},{ex:"Farmer Hold Shrug",note:"Heavy, 2s pause"},{ex:"Overhead Shrug",target:"12",note:"Light, shrug at lockout"}],
+  "Squat Jumps":[{ex:"Split Squat Jumps",target:"5/side",note:"Switch in the air, soft landings"},{ex:"Pause Squat Jump",note:"3s pause, then explode"},{ex:"180° Squat Jump",target:"6",note:"Rotate, stick the landing"}],
+  "Banded Goblet Squat":[{ex:"Tempo BW Squat",target:"12-15",note:"3s down, explode up"},{ex:"1.5-Rep Banded Squat",target:"10",note:"Bottom half, then stand"},{ex:"Banded Squat Pulse",target:"15",note:"Stay in the pocket"}],
+  "Bulgarian Split Squat (BW)":[{ex:"Step-Ups (BW)",target:"12/side",note:"Chair/bed, control the way down"},{ex:"Reverse Lunge (BW)",target:"12/side",note:"Long step, soft knee"},{ex:"Split Squat Iso Hold",target:"20-30s/side",unit:"sec",note:"Bottom position, tall chest"}],
+  "Single Leg RDL (BW)":[{ex:"Banded Good Morning",target:"15",note:"Band under feet, over shoulders"},{ex:"Single Leg Hinge to Reach",target:"10/side",note:"Touch the floor, square hips"},{ex:"Banded B-Stance RDL",target:"10/side",note:"Stand on band, back toe balance"}],
+  "Cossack Squats (BW)":[{ex:"Curtsy Lunge",target:"10/side",note:"Slow, upright torso"},{ex:"Lateral Lunge (BW)",target:"10/side",note:"Sit into the hip"},{ex:"Skater Hops",target:"8/side",note:"Land soft, hold 1s"}],
+  "Banded RDL":[{ex:"Single Leg Glute Bridge",target:"12/side",note:"Drive through the heel"},{ex:"Banded Sumo RDL",target:"12-15",note:"Wide stance on the band"},{ex:"Feet Elevated Glute Bridge",target:"15",note:"Heels on chair/bed"}],
+  "Side Plank":[{ex:"Bird Dog",target:"10/side",unit:"reps",note:"Slow, hips still"},{ex:"Side Plank Hip Dips",target:"10/side",unit:"reps",note:"Lower and lift the hip"},{ex:"Bear Hold",target:"20-30s",note:"Knees hover an inch up"}],
+  "Banded Push-Up":[{ex:"Deficit Push-Up",target:"8-12",note:"Hands on books, deep stretch"},{ex:"Banded Close Grip Push-Up",target:"8-12",note:"Band across back, elbows tight"},{ex:"Wide Push-Up",target:"10-15",note:"Hands wide, chest stretch"}],
+  "Banded Overhead Press":[{ex:"Seated Banded Shoulder Press",note:"Sit on band, press"},{ex:"Single Arm Banded Press",target:"10/side",note:"Stand on band, no lean"},{ex:"Banded Arnold Press",target:"10-12",note:"Rotate through the press"}],
+  "Banded Push Press":[{ex:"Split Stance Banded Press",note:"Band under front foot, drive"},{ex:"Banded Thruster",target:"10",note:"Squat straight into the press"},{ex:"Alternating Banded Push Press",target:"6/side",note:"Drive from the legs"}],
+  "Tempo Push-Up":[{ex:"Feet Elevated Push-Up",target:"8-12",note:"Feet on chair/bed"},{ex:"Pause Push-Up",target:"8-10",note:"2s dead stop at the bottom"},{ex:"Hand Release Push-Up",target:"10",note:"Hands off at the bottom, reset"}],
+  "Wall Slides":[{ex:"Scap Push-Up",target:"12",note:"Arms locked — pinch and spread the blades"},{ex:"Band Shoulder Dislocates",target:"10",note:"Wide grip, over and back"},{ex:"Quadruped Thoracic Rotation",target:"8/side",note:"Hand behind head, open up"}],
+  "Decline Push-Up":[{ex:"Hindu Push-Up",target:"8-10",note:"Sweeping arc"},{ex:"Divebomber Push-Up",target:"6-8",note:"Arc down and back"},{ex:"Decline Archer Push-Up",target:"5/side",note:"Feet up, slide across"}],
+  "Banded Lateral Raises":[{ex:"Banded Front Raise",note:"Stand on band, to eye level"},{ex:"Leaning Banded Lateral Raise",target:"10/side",note:"Lean away, full arc"},{ex:"Banded Y Raise",target:"12",note:"Thumbs up into a Y"}],
+  "Diamond Push-Up":[{ex:"Sphinx Push-Up",target:"8-10",note:"Forearms to lockout — triceps"},{ex:"Desk Skull Crusher",target:"8-12",note:"Hands on desk/counter edge, lower head under"},{ex:"Lying Banded Skull Crusher",target:"12-15",note:"Lie on the band, press from behind head"}],
+  "Banded Bent Over Row":[{ex:"Banded Gorilla Row",target:"8/side",note:"Both feet on band, alternate"},{ex:"Wide Grip Banded Row",target:"12-15",note:"Elbows out, upper back"},{ex:"Tempo Banded Row",target:"10",note:"3s lower each rep"}],
+  "Seated Banded Row":[{ex:"Banded High Row",note:"Hinge 45°, pull to chest"},{ex:"Single Arm Seated Band Row",target:"10/side",note:"Band around both feet"},{ex:"Seated Wide Band Row",target:"12-15",note:"Elbows high, squeeze"}],
+  "Superman Pulls":[{ex:"Superman Hold",target:"20-30s",unit:"sec",note:"Squeeze the whole back line"},{ex:"Alternating Superman",target:"10/side",note:"Opposite arm/leg, slow"},{ex:"Superman Rocks",target:"12",note:"Shape locked, small rocks"}],
+  "Banded Bicep Curls":[{ex:"Banded 21s",target:"21",note:"7 bottom + 7 top + 7 full"},{ex:"Single Arm Band Curl",target:"10/side",note:"Strict, full squeeze"},{ex:"Banded Reverse Curl",target:"12-15",note:"Knuckles up"}],
+  "Banded Single Arm Row":[{ex:"Half-Kneeling Banded Row",target:"10-12/side",note:"Band under front foot"},{ex:"Banded Meadows Row",target:"10/side",note:"Elbow flared, band under foot"},{ex:"Cross Body Band Row",target:"10/side",note:"Pull across the torso"}],
+  "Wall Angels":[{ex:"Prone T Raises",target:"12",note:"Thumbs up, squeeze"},{ex:"Wall Slide Lift-Offs",target:"8",note:"Hover hands off the wall"},{ex:"Floor Angels",target:"10",note:"Lying down, arms sweep slow"}],
+  "Reverse Snow Angels":[{ex:"Y-W Raises",target:"10",note:"Prone — Y then W, slow"},{ex:"Blackburns",target:"8",note:"Y-T-W circuit, slow"},{ex:"Prone V Raise",target:"12",note:"Arms back in a V, lift"}],
+  "Banded Shrugs":[{ex:"Banded Upright Row",target:"12-15",note:"Stand on band, lead with elbows"},{ex:"Single Arm Band Shrug",target:"12/side",note:"Pause at the top"},{ex:"Banded Overhead Shrug",target:"12",note:"Press up, shrug at the top"}],
+  "Banded Rear Delt Fly":[{ex:"Bent Over Band Pull Apart",note:"Hinged, pull apart at 45°"},{ex:"Step-On Band Reverse Fly",note:"Stand on band, hinge, fly out"},{ex:"Seated Band Rear Delt Fly",note:"Band under both feet, seated hinge"}],
+  "Banded Hammer Curls":[{ex:"Banded Drag Curl",note:"Elbows back, drag along torso"},{ex:"Banded Cross Body Hammer Curl",target:"10/side",note:"Across the torso"},{ex:"Slow Eccentric Band Curl",target:"10",note:"3s lower"}],
+};
+function fgMonthIdx(len){ const t=today(); return ((+t.slice(0,4))*12+(+t.slice(5,7)-1))%(len+1); }
+function fgMonthEx(e){ const pool=F_EX_ALTS[e.ex]; if(!pool||!pool.length) return e;
+  const i=fgMonthIdx(pool.length); if(!i) return e;
+  const o=Object.assign({},e,pool[i-1]); o.sets=e.sets; o.e=e.e; return o; }
+function fgRotateDay(src){ return { activation:src.activation, blocks:src.blocks.map(b=>({name:b.name, exercises:b.exercises.map(fgMonthEx)})) }; }
 const F_CIRCUITS = [
   { name: "5 Exercise Strength & Conditioning", work: "50s / 10s", rounds: "3-4", equip: "Light-medium DBs",
     seq: [
@@ -3923,7 +4028,7 @@ async function forgeStart(key){ const f=fgState();
   if(f.active){ if(f.active.type===key){ f.screen='session'; commit(); return; } const _ck=fgCheckedCount(f.active); if(_ck>0){ const ok=await uiConfirm('You have an in-progress '+f.active.type+' with '+_ck+' set'+(_ck===1?'':'s')+' checked. Discard it and start '+key+'? (Or Resume it from the picker to keep it.)','Discard & start'); if(!ok) return; } }
   const def=fgTypeDef(key), t=today();
   const a={ type:key, kind:def.kind, date:t, rating:0, feelPhys:null, feelMind:null, note:'' };
-  if(def.kind==='lift'){ const src=f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key];
+  if(def.kind==='lift'){ const src=fgRotateDay(f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key]);
     const defs=src.blocks.reduce((acc,b)=>acc.concat(b.exercises),[]); const sugg=forgeSuggest(f.log,defs);
     a.activation=src.activation;
     a.blocks=src.blocks.map(b=>({ name:b.name, exercises:b.exercises.map(e=>{ const s=sugg[e.ex]||{}; const n=e.sets||3;
@@ -4356,7 +4461,8 @@ function fgNextVariant(fam){ if(fgVariantSel[fam]) return fgVariantSel[fam];
   const f=fgState(); const last=(f.sessions||[]).slice().reverse().find(x=>String(x.type).indexOf(fam+' ')===0);
   return (last&&/ A$/.test(last.type))?'B':'A'; }
 function renderForgePicker(){ const f=fgState(); const dots=forgeDots(f.sessions,f.focus); const el=document.getElementById('forge-picker'); if(!el) return;
-  let h=(f.active?('<div class="fg-resume"><div class="fg-resume-txt">⏸ In progress · <b>'+esc(f.active.type)+'</b>'+((fgCheckedCount(f.active)||0)>0?' · '+fgCheckedCount(f.active)+' set'+(fgCheckedCount(f.active)===1?'':'s')+' checked':'')+'</div><button class="fg-resume-go" data-fgresume="1">Resume</button><button class="fg-resume-x" data-fgdiscard="1">Discard</button></div>'):'')+'<div class="fg-focus-lab">Focus phase</div><div class="fg-focus">'+F_FOCUS_ORDER.map(m=>'<button class="fg-focus-btn'+(f.focus===m?' on':'')+'" data-fgfocus="'+m+'">'+m+'</button>').join('')+'</div>';
+  let h=(f.active?('<div class="fg-resume"><div class="fg-resume-txt">⏸ In progress · <b>'+esc(f.active.type)+'</b>'+((fgCheckedCount(f.active)||0)>0?' · '+fgCheckedCount(f.active)+' set'+(fgCheckedCount(f.active)===1?'':'s')+' checked':'')+'</div><button class="fg-resume-go" data-fgresume="1">Resume</button><button class="fg-resume-x" data-fgdiscard="1">Discard</button></div>'):'')+'<div class="fg-focus-lab">Focus phase</div><div class="fg-focus">'+F_FOCUS_ORDER.map(m=>'<button class="fg-focus-btn'+(f.focus===m?' on':'')+'" data-fgfocus="'+m+'">'+m+'</button>').join('')+'</div>'
+    +'<div class="fg-ex-note" style="margin:4px 2px 0">🔁 Rotation '+String.fromCharCode(65+fgMonthIdx(3))+' of A-D — exercises refresh on the 1st of each month</div>';
   try{ const _y=dayShift(today(),-1); const _al=state.training.alchemy; if(_al&&_al.days&&(_al.days[_y]||[]).length&&!_al.history[_y]){ h+='<div class="fg-fuel-note">🍽 Yesterday\u2019s fuel went unsealed — if you ran light, favour a moderate day.</div>'; } }catch(e){}
   h+='<label class="fg-travel"><input type="checkbox" id="fgTravel"'+(f.travel?' checked':'')+'> ✈️ Travel mode — bodyweight + bands only</label>';
   const blue=Object.keys(dots).find(k=>dots[k]==='blue');
