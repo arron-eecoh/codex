@@ -71,6 +71,47 @@ module.exports = async function(C){
   C.forgeCancel();
   C.s=baseState();
 
+  // ---- earned progression: advanced alternates gate on demonstrated strength ----
+  const GATES=C.F_EX_GATES;
+  ok('every gated exercise is a rotation alternate (no dead gates)',
+    Object.keys(GATES).every(k=>Object.values(ALTS).some(p=>p.some(a=>a.ex===k))));
+  ok('every gate prerequisite is a real exercise with a how-to',
+    Object.keys(GATES).every(k=>C.EX_INFO[GATES[k].ex] && GATES[k].reps>0 && GATES[k].times>0));
+
+  // an alternate must never equal ANOTHER slot's base in the same day —
+  // otherwise a locked slot (serving its base) could duplicate an unlocked one
+  let cross=[];
+  const scanX=(days,label)=>Object.keys(days).forEach(k=>{ const base=names(days[k]);
+    days[k].blocks.forEach(b=>b.exercises.forEach(e=>{ (ALTS[e.ex]||[]).forEach(a=>{
+      if(base.indexOf(a.ex)>=0) cross.push(label+' '+k+': '+a.ex); }); })); });
+  scanX(T,'travel'); scanX(L,'lift');
+  ok('no alternate shadows another slot\'s base exercise in the same day'+(cross.length?' — CLASH: '+cross.join('; '):''), cross.length===0);
+
+  // locked without history → familiar base + 🔒 note (Shrimp Squat is Skater's Rotation-B alt)
+  C.s=baseState(); C.s.clockOffset=offB;
+  const skater={ex:'Skater Squat',sets:3,target:'5-8/side',unit:'reps',note:'CAL skill',bw:true,e:30};
+  const locked=C.fgMonthEx(skater);
+  ok('advanced alternate stays locked without history — base served with 🔒 note',
+    locked.ex==='Skater Squat' && /🔒 Shrimp Squat/.test(locked.note));
+
+  // two solid sessions (all sets ≥6 reps, not maxed out) unlock it
+  const fga=C.fgState();
+  ['gs1','gs2'].forEach((sid,i)=>{
+    fga.sessions.push({id:sid,date:'2026-0'+(i+1)+'-01',type:'Leg A',kind:'lift',rating:3,feelPhys:3,note:''});
+    [6,7,6].forEach((r,si)=>fga.log.push({id:'g'+sid+si,sessionId:sid,date:'2026-0'+(i+1)+'-01',type:'Leg A',exercise:'Skater Squat',setIdx:si+1,weight:0,reps:r,bw:true,notes:''}));
+  });
+  ok('unlocks after demonstrated strength (2 solid sessions)', C.fgMonthEx(skater).ex==='Shrimp Squat');
+
+  // sessions rated "maxed out" (feelPhys 5) do NOT count toward unlocking
+  C.s=baseState(); C.s.clockOffset=offB;
+  const fgb=C.fgState();
+  ['gx1','gx2'].forEach((sid,i)=>{
+    fgb.sessions.push({id:sid,date:'2026-0'+(i+1)+'-02',type:'Leg A',kind:'lift',rating:5,feelPhys:5,note:''});
+    [8,8].forEach((r,si)=>fgb.log.push({id:'h'+sid+si,sessionId:sid,date:'2026-0'+(i+1)+'-02',type:'Leg A',exercise:'Skater Squat',setIdx:si+1,weight:0,reps:r,bw:true,notes:''}));
+  });
+  ok('maxed-out sessions do not count toward unlocking', C.fgMonthEx(skater).ex==='Skater Squat');
+  C.s=baseState();
+
   // ---- HARDWIRED: every exercise, in every day and every rotation, ships a real ⓘ how-to ----
   // This is the permanent guarantee: add any exercise (base or alternate) without an
   // EX_INFO entry of substance and the build fails — no month or cycle can skip it.

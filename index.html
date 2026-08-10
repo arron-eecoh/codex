@@ -2459,7 +2459,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.10-r463';
+const BUILD='2026.08.10-r464';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3882,10 +3882,42 @@ const F_EX_ALTS = {
   "Banded Rear Delt Fly":[{ex:"Bent Over Band Pull Apart",note:"Hinged, pull apart at 45°"},{ex:"Step-On Band Reverse Fly",note:"Stand on band, hinge, fly out"},{ex:"Seated Band Rear Delt Fly",note:"Band under both feet, seated hinge"}],
   "Banded Hammer Curls":[{ex:"Banded Drag Curl",note:"Elbows back, drag along torso"},{ex:"Banded Cross Body Hammer Curl",target:"10/side",note:"Across the torso"},{ex:"Slow Eccentric Band Curl",target:"10",note:"3s lower"}],
 };
+/* ---- earned progression: advanced alternates stay LOCKED until the user's own
+   log proves readiness — `times` sessions of the prerequisite exercise with every
+   checked set at ≥ `reps` (2+ sets), none of them rated "maxed out" (feelPhys 5).
+   Until then the slot serves its familiar base with a 🔒 building-toward note. */
+const F_EX_GATES = {
+  "Wall Walk":               {ex:"Pike Pushups",          reps:8,  times:2},
+  "Feet Elevated Pike Push-Up":{ex:"Pike Pushups",        reps:8,  times:2},
+  "Wall HSPU Negatives":     {ex:"Pike Pushups",          reps:10, times:3},
+  "L-Sit Tuck Hold":         {ex:"Hollow Body Shotguns",  reps:12, times:3},
+  "Pseudo Planche Push-Up":  {ex:"Archer Push-Up",        reps:6,  times:3},
+  "Typewriter Push-Up":      {ex:"Archer Push-Up",        reps:5,  times:2},
+  "Decline Archer Push-Up":  {ex:"Decline Push-Up",       reps:10, times:3},
+  "Sphinx Push-Up":          {ex:"Diamond Push-Up",       reps:10, times:2},
+  "Clapping Push-Up":        {ex:"Blast Off Push-ups",    reps:5,  times:2},
+  "Explosive Hand-Release Push-Up":{ex:"Blast Off Push-ups",reps:5,times:2},
+  "Single Arm Assisted Hang":{ex:"Dead Hang",             reps:30, times:3},
+  "Weighted Dead Hang":      {ex:"Dead Hang",             reps:45, times:3},
+  "Renegade Row":            {ex:"Kettlebell Row Switches",reps:8, times:2},
+  "Shrimp Squat":            {ex:"Skater Squat",          reps:6,  times:2},
+  "Box Pistol":              {ex:"Skater Squat",          reps:5,  times:2},
+  "Assisted Sissy Squat":    {ex:"Skater Squat",          reps:5,  times:2},
+};
+function fgGateMet(f,g){ try{
+  const by={}; (f.log||[]).forEach(r=>{ if(r.exercise===g.ex){ (by[r.sessionId]=by[r.sessionId]||[]).push(Number(r.reps)||0); } });
+  const feel={}; (f.sessions||[]).forEach(s=>{ feel[s.id]=s.feelPhys; });
+  let n=0; Object.keys(by).forEach(sid=>{ const sets=by[sid]; const fp=feel[sid];
+    if(sets.length>=2 && Math.min.apply(null,sets)>=g.reps && !(fp!=null&&fp>=5)) n++; });
+  return n>=g.times; }catch(e){ return false; } }
 function fgMonthIdx(len){ const t=today(); return ((+t.slice(0,4))*12+(+t.slice(5,7)-1))%(len+1); }
 function fgMonthEx(e){ const pool=F_EX_ALTS[e.ex]; if(!pool||!pool.length) return e;
   const i=fgMonthIdx(pool.length); if(!i) return e;
-  const o=Object.assign({},e,pool[i-1]); o.sets=e.sets; o.e=e.e; return o; }
+  const a=pool[i-1];
+  const g=F_EX_GATES[a.ex];
+  if(g && !fgGateMet(fgState(),g)){
+    const o=Object.assign({},e); o.note=(e.note?e.note+' · ':'')+'🔒 '+a.ex+' unlocks as you build strength'; return o; }
+  const o=Object.assign({},e,a); o.sets=e.sets; o.e=e.e; return o; }
 function fgRotateDay(src){ return { activation:src.activation, blocks:src.blocks.map(b=>({name:b.name, exercises:b.exercises.map(fgMonthEx)})) }; }
 const F_CIRCUITS = [
   { name: "5 Exercise Strength & Conditioning", work: "50s / 10s", rounds: "3-4", equip: "Light-medium DBs",
