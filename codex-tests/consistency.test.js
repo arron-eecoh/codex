@@ -49,7 +49,7 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.09-r462'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.10-r463'/.test(srcB) && /id="buildStamp"/.test(srcB));
 
   // ---- camera fast-path: snap buttons open the camera, 🖼 buttons open the gallery ----
   ok('meal + menu each have a capture input AND a gallery input',
