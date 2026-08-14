@@ -52,11 +52,11 @@ module.exports = async function(C){
   const offA=base, offB=flipOff;                    // offA → Rotation A, offB → Rotation B
 
   C.s.clockOffset=offA;
-  ok('Rotation A month serves the original exercise', C.fgMonthEx(goblet).ex==='Goblet Squat');
+  ok('Rotation A month serves the original exercise', C.fgResolveSlot(goblet).ex==='Goblet Squat');
   C.s.clockOffset=offB;
-  const rot=C.fgMonthEx(goblet);
+  const rot=C.fgResolveSlot(goblet);
   ok('Rotation B month serves the alternate, keeping sets + energy', rot.ex==='Heels Elevated Goblet Squat' && rot.sets===3 && rot.e===38);
-  ok('exercise without a pool passes through untouched', C.fgMonthEx({ex:'Made Up Move',sets:3,target:'5',unit:'reps'}).ex==='Made Up Move');
+  ok('exercise without a pool passes through untouched', C.fgResolveSlot({ex:'Made Up Move',sets:3,target:'5',unit:'reps'}).ex==='Made Up Move');
 
   // rotation flows into a real session build
   C.s=baseState(); C.s.clockOffset=offB;
@@ -90,7 +90,7 @@ module.exports = async function(C){
   // locked without history → familiar base + 🔒 note (Shrimp Squat is Skater's Rotation-B alt)
   C.s=baseState(); C.s.clockOffset=offB;
   const skater={ex:'Skater Squat',sets:3,target:'5-8/side',unit:'reps',note:'CAL skill',bw:true,e:30};
-  const locked=C.fgMonthEx(skater);
+  const locked=C.fgResolveSlot(skater);
   ok('advanced alternate stays locked without history — base served with 🔒 note',
     locked.ex==='Skater Squat' && /🔒 Shrimp Squat/.test(locked.note));
 
@@ -100,7 +100,7 @@ module.exports = async function(C){
     fga.sessions.push({id:sid,date:'2026-0'+(i+1)+'-01',type:'Leg A',kind:'lift',rating:3,feelPhys:3,note:''});
     [6,7,6].forEach((r,si)=>fga.log.push({id:'g'+sid+si,sessionId:sid,date:'2026-0'+(i+1)+'-01',type:'Leg A',exercise:'Skater Squat',setIdx:si+1,weight:0,reps:r,bw:true,notes:''}));
   });
-  ok('unlocks after demonstrated strength (2 solid sessions)', C.fgMonthEx(skater).ex==='Shrimp Squat');
+  ok('unlocks after demonstrated strength (2 solid sessions)', C.fgResolveSlot(skater).ex==='Shrimp Squat');
 
   // sessions rated "maxed out" (feelPhys 5) do NOT count toward unlocking
   C.s=baseState(); C.s.clockOffset=offB;
@@ -109,8 +109,38 @@ module.exports = async function(C){
     fgb.sessions.push({id:sid,date:'2026-0'+(i+1)+'-02',type:'Leg A',kind:'lift',rating:5,feelPhys:5,note:''});
     [8,8].forEach((r,si)=>fgb.log.push({id:'h'+sid+si,sessionId:sid,date:'2026-0'+(i+1)+'-02',type:'Leg A',exercise:'Skater Squat',setIdx:si+1,weight:0,reps:r,bw:true,notes:''}));
   });
-  ok('maxed-out sessions do not count toward unlocking', C.fgMonthEx(skater).ex==='Skater Squat');
+  ok('maxed-out sessions do not count toward unlocking', C.fgResolveSlot(skater).ex==='Skater Squat');
   C.s=baseState();
+
+  // ---- 👎 dislikes: banned exercises never come back; slots re-resolve ----
+  C.s=baseState(); C.s.clockOffset=offB;
+  const gobletDef={ex:'Goblet Squat',sets:3,target:'6-8',unit:'reps',note:'x',e:38};
+  C.fgState().banned=['Heels Elevated Goblet Squat'];
+  ok('banned rotation pick falls back to the base', C.fgResolveSlot(gobletDef).ex==='Goblet Squat');
+  C.fgState().banned=['Heels Elevated Goblet Squat','Goblet Squat'];
+  ok('banned pick AND base fall through to the next alternate', C.fgResolveSlot(gobletDef).ex==='Double DB Front Squat');
+  C.fgState().banned=['Wall Sit','Glute Bridge March','1.5-Rep BW Squat','Wall Sit + Calf Raise'];
+  const wallsit={ex:'Wall Sit',sets:3,target:'30-45s',unit:'sec',note:'CAL',bw:true,e:18};
+  ok('whole family banned → slot resolves to nothing', C.fgResolveSlot(wallsit)===null);
+  const legB=C.fgRotateDay(L['Leg B']);
+  const legBnames=legB.blocks.flatMap(b=>b.exercises.map(e=>e.ex));
+  ok('day builder drops the fully-banned slot from the block',
+    legBnames.indexOf('Wall Sit')<0 && legBnames.indexOf('Glute Bridge March')<0 && legBnames.length===names(L['Leg B']).length-1);
+
+  // runtime 👎: tap removes, bans, and swaps in the replacement with fresh sets
+  C.s=baseState(); global.__CONFIRM=true;
+  await C.forgeStart('Leg A'); C.renderForgeSession();
+  const A=C.fgState().active;
+  let bi=-1,ei=-1; A.blocks.forEach((b,i)=>b.exercises.forEach((e,j)=>{ if(e.ex==='Goblet Squat'){bi=i;ei=j;} }));
+  ok('(setup) Goblet Squat present in Rotation A Leg A', bi>=0);
+  C.forgeOnClick({target:{closest:q=>q==='[data-fgdislike]'?{dataset:{fgdislike:bi+':'+ei}}:null}});
+  await new Promise(r=>setTimeout(r,50));
+  ok('👎 records the ban in synced state', C.fgState().banned.indexOf('Goblet Squat')>=0);
+  const swapped=A.blocks[bi].exercises[ei];
+  ok('slot instantly re-resolves to the next eligible alternate with fresh sets',
+    swapped.ex==='Heels Elevated Goblet Squat' && swapped.sets.length===3 && swapped.sets.every(s=>!s.done));
+  ok('future sessions never serve a banned exercise', C.fgResolveSlot({ex:'Goblet Squat',sets:3,target:'6-8',unit:'reps',e:38}).ex!=='Goblet Squat');
+  C.forgeCancel(); C.s=baseState();
 
   // ---- HARDWIRED: every exercise, in every day and every rotation, ships a real ⓘ how-to ----
   // This is the permanent guarantee: add any exercise (base or alternate) without an
