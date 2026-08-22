@@ -641,6 +641,7 @@
   .fg-feel-row.set .fg-feel-val{color:var(--ember)}
   .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
   .fg-ex-dis{opacity:.6;flex:0 0 auto}
+  .fuel-test{opacity:.75;font-size:12.5px;margin-top:2px}
   .fuel-btnrow{display:flex;gap:8px;align-items:stretch}
   .fuel-btnrow .fuel-primary,.fuel-btnrow .fuel-wide{flex:1;min-width:0}
   .fuel-galbtn{flex:0 0 auto;min-width:48px;font-size:17px;padding:0 12px}
@@ -1333,6 +1334,7 @@
       <input type="file" accept="image/*" id="fuelMenu" style="display:none">
       <div class="fuel-btnrow"><button class="btn-solid fuel-primary" id="fuelPhotoBtn">📷 Snap a meal</button><button class="btn-ghost fuel-galbtn" id="fuelPhotoUpBtn" title="Upload a meal photo" aria-label="Upload a meal photo">🖼</button></div>
       <div class="fuel-btnrow"><button class="btn-ghost fuel-wide" id="fuelMenuBtn">📜 Scan a menu — smart picks</button><button class="btn-ghost fuel-galbtn" id="fuelMenuUpBtn" title="Upload a menu photo or screenshot" aria-label="Upload a menu photo or screenshot">🖼</button></div>
+      <button class="btn-ghost fuel-wide fuel-test" id="fuelTestBtn">🧪 Test AI connection</button>
       <div class="fuel-manual">
         <input type="text" id="fuelText" placeholder="…or type it: ‘2 eggs, toast, coffee’" autocomplete="off">
         <button class="btn-ghost" id="fuelTextBtn" title="Estimate">✨</button>
@@ -2461,7 +2463,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.10-r465';
+const BUILD='2026.08.11-r466';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4780,6 +4782,24 @@ let fuelPending=null, fuelMenuData=null, fuelCoachData=null, fuelLoading=null, f
 function fuelSetErr(m){ fuelErr=m; const el=document.getElementById('fuelErr'); if(el){ el.textContent=m||''; el.style.display=m?'block':'none'; } }
 function fuelSetLoading(v){ fuelLoading=v; renderAlchemy(); }
 function aiReady(){ return typeof fetch==='function'; }
+/* One-tap layered diagnosis of the whole AI chain: server → sign-in → key
+   present → key valid → credits. The ?check=1 probe verifies the key against
+   Anthropic server-side, so each verdict names the exact fix. */
+async function fuelTestAI(){ fuelSetErr('🧪 Testing the AI connection…');
+  try{
+    const r0=await fetch('/.netlify/functions/ai'); const j0=await r0.json();
+    if(!j0.keySet){ fuelSetErr('🧪 Server reachable ✓ but ANTHROPIC_API_KEY is NOT set. Netlify → Site configuration → Environment variables → add it, then Deploys → Trigger deploy.'); return; }
+    let tk=null; try{ tk=Cloud.token(); }catch(e){}
+    if(j0.authRequired && !tk){ fuelSetErr('🧪 Server ✓ · key set ✓ — but you are signed OUT. Sign in (Settings → Account & Sync), then retry.'); return; }
+    const h={}; if(tk) h['Authorization']='Bearer '+tk;
+    const r1=await fetch('/.netlify/functions/ai?check=1',{headers:h});
+    if(r1.status===401){ fuelSetErr('🧪 Your sign-in has expired — sign out and back in (Settings → Account & Sync), then retry.'); return; }
+    const j1=await r1.json(); const up=j1.upstream||{};
+    if(up.status>=200&&up.status<300){ fuelSetErr('✅ Everything works — server, sign-in, key, and credits all check out. Text, photo, and menu estimates are live.'); return; }
+    if(up.error&&/credit balance/i.test(up.error)){ fuelSetErr('🧪 The key works but ITS Anthropic account has no credits. Top up THAT account at platform.claude.com → Plans & Billing — or create a key in your funded account, swap it into Netlify env, and Trigger deploy. (Credits and keys are per-account: a top-up in a different account does nothing for this key.)'); return; }
+    if(up.status===401){ fuelSetErr('🧪 Anthropic REJECTED the key — it is invalid or revoked. Create a fresh key (platform.claude.com → API Keys), paste it into Netlify → Environment variables → ANTHROPIC_API_KEY, then Trigger deploy.'); return; }
+    fuelSetErr('🧪 Anthropic answered HTTP '+up.status+(up.error?' — '+up.error:'')+'. Screenshot this and send it to Claude.');
+  }catch(e){ fuelSetErr('🧪 Could not reach the app server at all — check your internet connection and retry.'); } }
 
 async function onFuelPhoto(file){ fuelSetErr(null); fuelSetLoading('photo'); try{ const b64=await fileToJpeg(file); const out=await nutEstImage(b64,'image/jpeg',fuelState().search); if(!out.items||!out.items.length) fuelSetErr((out.questions&&out.questions[0])||'No food detected. Try another angle, or add it manually.'); else { fuelPending={items:out.items,questions:out.questions||[],time:out.time}; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 async function onFuelText(){ const inp=document.getElementById('fuelText'); const v=(inp.value||'').trim(); if(!v) return; const hit=fuelState().cache.find(f=>normName(f.name)===normName(v)); if(hit){ fuelPending={items:[Object.assign({},hit,{confidence:'high'})],questions:[]}; inp.value=''; openReview(); return; } fuelSetErr(null); fuelSetLoading('text'); try{ const out=await nutEstText(v,fuelState().search); if(!out.items||!out.items.length) fuelSetErr("Couldn't find a food in that. Reword and retry."); else { fuelPending={items:out.items,questions:out.questions||[]}; inp.value=''; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
@@ -4955,6 +4975,7 @@ function renderProtocol(){ const list=document.getElementById('protoList'); if(!
       if(e.target.closest('#targetsEdit')){ const tf=document.getElementById('targetsForm'); const tt=fuelTargets(); _tset('tKcal',tt.cal);_tset('tProtein',tt.p);_tset('tCarbs',tt.c);_tset('tFat',tt.f);_tset('tFib',tt.fib); tf.style.display='block'; return; }
       if(e.target.closest('#targetsCancel')){ document.getElementById('targetsForm').style.display='none'; renderAlchemy(); return; }
       if(e.target.closest('#targetsSave')){ saveTargets(); return; }
+      if(e.target.closest('#fuelTestBtn')){ fuelTestAI(); return; }
       if(e.target.closest('#fuelPhotoBtn')){ if(fuelLoading) return; document.getElementById('fuelPhotoCam').click(); return; }
       if(e.target.closest('#fuelPhotoUpBtn')){ if(fuelLoading) return; document.getElementById('fuelPhoto').click(); return; }
       if(e.target.closest('#fuelMenuBtn')){ if(fuelLoading) return; document.getElementById('fuelMenuCam').click(); return; }

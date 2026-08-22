@@ -49,7 +49,7 @@ module.exports = async function(C){
   // ---- activateTab still persists the tab ----
   ok('tab persisted for next boot', (()=>{ C.activateTab('skills'); return C.s.ui.tab==='skills'; })());
   const srcB=require('fs').readFileSync(global.__APPFILE,'utf8');
-  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.10-r465'/.test(srcB) && /id="buildStamp"/.test(srcB));
+  ok('build stamp present and shown in Settings', /const BUILD='2026\.08\.11-r466'/.test(srcB) && /id="buildStamp"/.test(srcB));
 
   // ---- camera fast-path: snap buttons open the camera, 🖼 buttons open the gallery ----
   ok('meal + menu each have a capture input AND a gallery input',
@@ -84,4 +84,22 @@ module.exports = async function(C){
     && /Sign in/.test(C.aiFailMsg(new Error('AI proxy: sign in to use the coach')))
     && /rate limited/.test(C.aiFailMsg(new Error('AI proxy: rate limited')))
     && /reach the AI/.test(C.aiFailMsg(new Error('Failed to fetch'))));
+
+  // ---- 🧪 Test AI connection: every failing layer maps to its exact fix ----
+  const errBox=()=>String((global.__els['fuelErr']||{}).textContent||'');
+  const seq=(rs)=>{ let i=0; global.fetch=async()=>{ const r=rs[Math.min(i++,rs.length-1)]; return { status:r.status||200, json:async()=>r.body }; }; };
+  seq([{body:{ok:true,keySet:false,authRequired:true}}]); await C.fuelTestAI();
+  ok('🧪 missing key → names the Netlify env fix', /ANTHROPIC_API_KEY is NOT set/.test(errBox()));
+  seq([{body:{ok:true,keySet:true,authRequired:true}}]); await C.fuelTestAI();
+  ok('🧪 signed out → names the sign-in fix', /signed OUT/.test(errBox()));
+  seq([{body:{ok:true,keySet:true,authRequired:false}},{body:{ok:true,keySet:true,authRequired:false,upstream:{status:200}}}]); await C.fuelTestAI();
+  ok('🧪 healthy chain → all-clear verdict', /Everything works/.test(errBox()));
+  seq([{body:{ok:true,keySet:true,authRequired:false}},{body:{ok:true,keySet:true,authRequired:false,upstream:{status:400,error:'Your credit balance is too low to access the Anthropic API.'}}}]); await C.fuelTestAI();
+  ok('🧪 no credits → explains per-account top-up or key swap', /no credits/.test(errBox()) && /per-account/.test(errBox()));
+  seq([{body:{ok:true,keySet:true,authRequired:false}},{body:{ok:true,keySet:true,authRequired:false,upstream:{status:401,error:'invalid x-api-key'}}}]); await C.fuelTestAI();
+  ok('🧪 invalid key → names the fresh-key fix', /REJECTED the key/.test(errBox()));
+  global.fetch=undefined;
+  const fnSrc=require('fs').readFileSync(require('path').join(require('path').dirname(global.__APPFILE),'netlify/functions/ai.js'),'utf8');
+  ok('server deep-check really probes Anthropic (1-token, auth-gated)', /queryStringParameters/.test(fnSrc) && /max_tokens: 1/.test(fnSrc) && /sign in to run the check/.test(fnSrc));
+  ok('🧪 button wired in the pane', /id="fuelTestBtn"/.test(srcB) && /#fuelTestBtn'\)\)\{ fuelTestAI\(\)/.test(srcB));
 };
