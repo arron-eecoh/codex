@@ -640,6 +640,8 @@
   .fg-feel-val{flex:0 0 96px;text-align:right;font-size:11.5px;color:var(--ink-faint)}
   .fg-feel-row.set .fg-feel-val{color:var(--ember)}
   .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
+  .fg-ex-dis{opacity:.6;flex:0 0 auto}
+  .fuel-test{opacity:.75;font-size:12.5px;margin-top:2px}
   .fuel-btnrow{display:flex;gap:8px;align-items:stretch}
   .fuel-btnrow .fuel-primary,.fuel-btnrow .fuel-wide{flex:1;min-width:0}
   .fuel-galbtn{flex:0 0 auto;min-width:48px;font-size:17px;padding:0 12px}
@@ -1332,6 +1334,7 @@
       <input type="file" accept="image/*" id="fuelMenu" style="display:none">
       <div class="fuel-btnrow"><button class="btn-solid fuel-primary" id="fuelPhotoBtn">📷 Snap a meal</button><button class="btn-ghost fuel-galbtn" id="fuelPhotoUpBtn" title="Upload a meal photo" aria-label="Upload a meal photo">🖼</button></div>
       <div class="fuel-btnrow"><button class="btn-ghost fuel-wide" id="fuelMenuBtn">📜 Scan a menu — smart picks</button><button class="btn-ghost fuel-galbtn" id="fuelMenuUpBtn" title="Upload a menu photo or screenshot" aria-label="Upload a menu photo or screenshot">🖼</button></div>
+      <button class="btn-ghost fuel-wide fuel-test" id="fuelTestBtn">🧪 Test AI connection</button>
       <div class="fuel-manual">
         <input type="text" id="fuelText" placeholder="…or type it: ‘2 eggs, toast, coffee’" autocomplete="off">
         <button class="btn-ghost" id="fuelTextBtn" title="Estimate">✨</button>
@@ -1984,6 +1987,7 @@ function trainingSeed(){
       log:[],                      // [{id,sessionId,date,type,exercise,setIdx,weight,reps,bw,notes}]
       active:null,                 // in-progress session
       history:{},                  // dayKey -> true (a session completed that day)
+      banned:[],                   // 👎 exercise names the user never wants again
     },
     alchemy:{
       targets:Object.assign({},NUT_TARGETS),
@@ -2459,7 +2463,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.10-r463';
+const BUILD='2026.08.11-r466';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -3882,11 +3886,63 @@ const F_EX_ALTS = {
   "Banded Rear Delt Fly":[{ex:"Bent Over Band Pull Apart",note:"Hinged, pull apart at 45°"},{ex:"Step-On Band Reverse Fly",note:"Stand on band, hinge, fly out"},{ex:"Seated Band Rear Delt Fly",note:"Band under both feet, seated hinge"}],
   "Banded Hammer Curls":[{ex:"Banded Drag Curl",note:"Elbows back, drag along torso"},{ex:"Banded Cross Body Hammer Curl",target:"10/side",note:"Across the torso"},{ex:"Slow Eccentric Band Curl",target:"10",note:"3s lower"}],
 };
+/* ---- earned progression: advanced alternates stay LOCKED until the user's own
+   log proves readiness — `times` sessions of the prerequisite exercise with every
+   checked set at ≥ `reps` (2+ sets), none of them rated "maxed out" (feelPhys 5).
+   Until then the slot serves its familiar base with a 🔒 building-toward note. */
+const F_EX_GATES = {
+  "Wall Walk":               {ex:"Pike Pushups",          reps:8,  times:2},
+  "Feet Elevated Pike Push-Up":{ex:"Pike Pushups",        reps:8,  times:2},
+  "Wall HSPU Negatives":     {ex:"Pike Pushups",          reps:10, times:3},
+  "L-Sit Tuck Hold":         {ex:"Hollow Body Shotguns",  reps:12, times:3},
+  "Pseudo Planche Push-Up":  {ex:"Archer Push-Up",        reps:6,  times:3},
+  "Typewriter Push-Up":      {ex:"Archer Push-Up",        reps:5,  times:2},
+  "Decline Archer Push-Up":  {ex:"Decline Push-Up",       reps:10, times:3},
+  "Sphinx Push-Up":          {ex:"Diamond Push-Up",       reps:10, times:2},
+  "Clapping Push-Up":        {ex:"Blast Off Push-ups",    reps:5,  times:2},
+  "Explosive Hand-Release Push-Up":{ex:"Blast Off Push-ups",reps:5,times:2},
+  "Single Arm Assisted Hang":{ex:"Dead Hang",             reps:30, times:3},
+  "Weighted Dead Hang":      {ex:"Dead Hang",             reps:45, times:3},
+  "Renegade Row":            {ex:"Kettlebell Row Switches",reps:8, times:2},
+  "Shrimp Squat":            {ex:"Skater Squat",          reps:6,  times:2},
+  "Box Pistol":              {ex:"Skater Squat",          reps:5,  times:2},
+  "Assisted Sissy Squat":    {ex:"Skater Squat",          reps:5,  times:2},
+};
+function fgGateMet(f,g){ try{
+  const by={}; (f.log||[]).forEach(r=>{ if(r.exercise===g.ex){ (by[r.sessionId]=by[r.sessionId]||[]).push(Number(r.reps)||0); } });
+  const feel={}; (f.sessions||[]).forEach(s=>{ feel[s.id]=s.feelPhys; });
+  let n=0; Object.keys(by).forEach(sid=>{ const sets=by[sid]; const fp=feel[sid];
+    if(sets.length>=2 && Math.min.apply(null,sets)>=g.reps && !(fp!=null&&fp>=5)) n++; });
+  return n>=g.times; }catch(e){ return false; } }
 function fgMonthIdx(len){ const t=today(); return ((+t.slice(0,4))*12+(+t.slice(5,7)-1))%(len+1); }
-function fgMonthEx(e){ const pool=F_EX_ALTS[e.ex]; if(!pool||!pool.length) return e;
-  const i=fgMonthIdx(pool.length); if(!i) return e;
-  const o=Object.assign({},e,pool[i-1]); o.sets=e.sets; o.e=e.e; return o; }
-function fgRotateDay(src){ return { activation:src.activation, blocks:src.blocks.map(b=>({name:b.name, exercises:b.exercises.map(fgMonthEx)})) }; }
+/* Resolve what a slot serves today: the month's rotation pick, skipping anything
+   the user has 👎-banned and any advanced alternate not yet earned (gates).
+   Candidate order: rotation pick → base → remaining alternates. Returns null
+   when the user has banned the whole family (slot drops from the block). */
+function fgResolveSlot(e){ const f=fgState(), banned=(f&&f.banned)||[], pool=F_EX_ALTS[e.ex]||[];
+  const i=pool.length?fgMonthIdx(pool.length):0;
+  const seq=[]; if(i&&pool[i-1]) seq.push(pool[i-1]); seq.push(null);
+  pool.forEach((a,ix)=>{ if(ix!==i-1) seq.push(a); });
+  let lockedNote=null;
+  for(const a of seq){ const nm=a?a.ex:e.ex;
+    if(banned.indexOf(nm)>=0) continue;
+    if(a){ const g=F_EX_GATES[nm];
+      if(g && !fgGateMet(f,g)){ if(!lockedNote) lockedNote='🔒 '+nm+' unlocks as you build strength'; continue; }
+      const o=Object.assign({},e,a); o.sets=e.sets; o.e=e.e; o.baseEx=e.ex; return o; }
+    const o=Object.assign({},e); o.baseEx=e.ex;
+    if(lockedNote) o.note=(e.note?e.note+' · ':'')+lockedNote;
+    return o; }
+  return null; }
+function fgRotateDay(src){ return { activation:src.activation, blocks:src.blocks.map(b=>({name:b.name, exercises:b.exercises.map(fgResolveSlot).filter(Boolean)})) }; }
+/* Find the base slot def for an active exercise so a 👎 can re-resolve it. */
+function fgSlotBaseDef(a,baseEx){ const key=a.type;
+  const day=(a.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key]); if(!day) return null;
+  for(const b of day.blocks){ for(const e of b.exercises){ if(e.ex===baseEx) return e; } } return null; }
+function fgBuildRuntimeEx(def,f){ const s=(forgeSuggest(f.log,[def])[def.ex])||{}; const n=def.sets||3;
+  const sw=s.suggest?String(s.suggest.weight||''):''; const sr=s.suggest&&s.suggest.reps!=null?String(s.suggest.reps):fgDefReps(def.target);
+  return { ex:def.ex, target:def.target, unit:def.unit, note:def.note, bw:!!def.bw, e:def.e||0, baseEx:def.baseEx||def.ex,
+    lastText:s.lastText||null, leveledUp:!!s.leveledUp,
+    sets:Array.from({length:n},()=>({ weight:def.bw?'':sw, reps:sr, done:false })) }; }
 const F_CIRCUITS = [
   { name: "5 Exercise Strength & Conditioning", work: "50s / 10s", rounds: "3-4", equip: "Light-medium DBs",
     seq: [
@@ -4027,13 +4083,13 @@ function fgCheckedCount(a){ if(!a||a.kind!=='lift'||!a.blocks) return null; let 
 async function forgeStart(key){ const f=fgState();
   if(f.active){ if(f.active.type===key){ f.screen='session'; commit(); return; } const _ck=fgCheckedCount(f.active); if(_ck>0){ const ok=await uiConfirm('You have an in-progress '+f.active.type+' with '+_ck+' set'+(_ck===1?'':'s')+' checked. Discard it and start '+key+'? (Or Resume it from the picker to keep it.)','Discard & start'); if(!ok) return; } }
   const def=fgTypeDef(key), t=today();
-  const a={ type:key, kind:def.kind, date:t, rating:0, feelPhys:null, feelMind:null, note:'' };
+  const a={ type:key, kind:def.kind, date:t, rating:0, feelPhys:null, feelMind:null, note:'', travel:!!f.travel };
   if(def.kind==='lift'){ const src=fgRotateDay(f.travel?(F_TRAVEL_DAYS[key]||F_TRAVEL_DAYS[key.replace(/ [AB]$/,'')]):F_LIFT_DAYS[key]);
     const defs=src.blocks.reduce((acc,b)=>acc.concat(b.exercises),[]); const sugg=forgeSuggest(f.log,defs);
     a.activation=src.activation;
     a.blocks=src.blocks.map(b=>({ name:b.name, exercises:b.exercises.map(e=>{ const s=sugg[e.ex]||{}; const n=e.sets||3;
       const sw=s.suggest?String(s.suggest.weight||''):''; const sr=s.suggest&&s.suggest.reps!=null?String(s.suggest.reps):fgDefReps(e.target);
-      return { ex:e.ex, target:e.target, unit:e.unit, note:e.note, bw:!!e.bw, e:e.e||0, lastText:s.lastText||null, leveledUp:!!s.leveledUp,
+      return { ex:e.ex, target:e.target, unit:e.unit, note:e.note, bw:!!e.bw, e:e.e||0, baseEx:e.baseEx||e.ex, lastText:s.lastText||null, leveledUp:!!s.leveledUp,
         sets:Array.from({length:n},()=>({ weight:e.bw?'':sw, reps:sr, done:false })) }; }) }));
   }
   else if(def.kind==='circuit'){ a.circuitName=F_CIRCUITS[0].name; a.rounds=''; }
@@ -4409,6 +4465,17 @@ function forgeOnClick(e){ const f=fgState();
   const _ca=e.target.closest('[data-fgcheckall]'); if(_ca && f.active){ const cp=_ca.dataset.fgcheckall.split(':'); const ex=f.active.blocks[+cp[0]].exercises[+cp[1]]; const all=ex.sets.every(s=>s.done); ex.sets.forEach(s=>{ s.done=!all; }); renderForgeSession(); Store.save(state); return true; }
   const set=e.target.closest('[data-fgset]'); if(set && f.active){ if(fgTimer&&fgTimer.hold) fgTimer.hold=false;
     const p=set.dataset.fgset.split(':'); const bi=+p[0],ei=+p[1],si=+p[2]; const blk=f.active.blocks[bi]; const s=blk.exercises[ei].sets[si]; const was=s.done; s.done=!s.done; if(!was && s.done && fgRoundComplete(blk,si)){ if(fgAllDone()){ fgTimerClose(); } else { fgBreakStart(); } } renderForgeSession(); if(!was && s.done) fgScrollNext(); Store.save(state); return true; }
+  const dk=e.target.closest('[data-fgdislike]'); if(dk && f.active){ const p=dk.dataset.fgdislike.split(':');
+    (async()=>{ const blk=f.active.blocks[+p[0]]; const ex=blk&&blk.exercises[+p[1]]; if(!ex) return;
+      const go=await uiConfirm('Never show "'+ex.ex+'" again? A suitable replacement fills the slot when one exists.','👎 Remove for good');
+      if(!go) return;
+      f.banned=f.banned||[]; if(f.banned.indexOf(ex.ex)<0) f.banned.push(ex.ex);
+      const bd=fgSlotBaseDef(f.active, ex.baseEx||ex.ex);
+      const rep=bd?fgResolveSlot(bd):null;
+      if(rep){ blk.exercises[+p[1]]=fgBuildRuntimeEx(rep,f); toast('👎 '+ex.ex+' removed','Swapped in '+rep.ex+' — it won’t come back'); }
+      else { blk.exercises.splice(+p[1],1); toast('👎 '+ex.ex+' removed','Whole family disliked — slot cleared for today'); }
+      renderForgeSession(); Store.save(state);
+    })(); return true; }
   const rt=e.target.closest('[data-fgfeel]'); if(rt && f.active){ const k=rt.dataset.fgfeel==='mind'?'feelMind':'feelPhys'; f.active[k]=fgFeelClamp(rt.value); renderForgeSession(); if(fgAllDone()) fgScrollNext(); Store.save(state); return true; }
   if(e.target.closest('#fgComplete')){ forgeComplete(); return true; }
   return false;
@@ -4493,7 +4560,7 @@ function renderForgeSession(){ _fgNextCache=null; const f=fgState(), a=f.active;
       const _col=(bi in fgBlockCollapse)?fgBlockCollapse[bi]:_bd;
       h+='<div class="fg-block-lab fg-block-tap" data-fgblocktoggle="'+bi+'"><span>'+esc(b.name)+'</span>'+(_bd?'<span class="fg-block-donebadge">✓ done</span>':'')+(_be?'<span class="fg-energy" title="Block energy (of ~100)">⚡ '+_be+'</span>':'')+'<span class="fg-block-chev">'+(_col?'▸':'▾')+'</span></div>';
       if(_col) return;
-      b.exercises.forEach((e,ei)=>{ const _nx=fgNextTarget(); const _isNext=_nx&&_nx.bi===bi&&_nx.ei===ei; const _sub=(EX_INFO[e.ex]?'<button class="fg-ex-i" data-fgexinfo="'+bi+':'+ei+'" aria-label="How to do this">ⓘ how-to</button>':'')+(e.note?'<span class="fg-ex-note-in">'+esc(e.note)+'</span>':''); h+='<div class="fg-ex'+(_isNext?' up-next':'')+'" data-fgexanchor="'+bi+':'+ei+'"><div class="fg-ex-top"><span class="fg-ex-name">'+esc(e.ex)+'</span><span class="fg-ex-target">'+esc(e.target)+' '+esc(e.unit)+(e.unit==='sec'?'<button class="fg-hold-timer" data-fgholdtimer="'+bi+':'+ei+'" title="Start hold timer">⏱ '+(fgParseSecs(e.target)||30)+'s</button>':'')+'</span></div>'+((_sub&&e.sets.length<=1)?'<div class="fg-ex-sub">'+_sub+'</div>':'')+((EX_INFO[e.ex]&&fgInfoOpen.has(bi+':'+ei))?'<div class="fg-ex-info">'+esc(EX_INFO[e.ex])+(e.note?'<div class="fg-ex-info-note">\u203a '+esc(e.note)+'</div>':'')+'</div>':'');
+      b.exercises.forEach((e,ei)=>{ const _nx=fgNextTarget(); const _isNext=_nx&&_nx.bi===bi&&_nx.ei===ei; const _sub=(EX_INFO[e.ex]?'<button class="fg-ex-i" data-fgexinfo="'+bi+':'+ei+'" aria-label="How to do this">ⓘ how-to</button>':'')+'<button class="fg-ex-i fg-ex-dis" data-fgdislike="'+bi+':'+ei+'" aria-label="Remove this exercise from your program">👎</button>'+(e.note?'<span class="fg-ex-note-in">'+esc(e.note)+'</span>':''); h+='<div class="fg-ex'+(_isNext?' up-next':'')+'" data-fgexanchor="'+bi+':'+ei+'"><div class="fg-ex-top"><span class="fg-ex-name">'+esc(e.ex)+'</span><span class="fg-ex-target">'+esc(e.target)+' '+esc(e.unit)+(e.unit==='sec'?'<button class="fg-hold-timer" data-fgholdtimer="'+bi+':'+ei+'" title="Start hold timer">⏱ '+(fgParseSecs(e.target)||30)+'s</button>':'')+'</span></div>'+((_sub&&e.sets.length<=1)?'<div class="fg-ex-sub">'+_sub+'</div>':'')+((EX_INFO[e.ex]&&fgInfoOpen.has(bi+':'+ei))?'<div class="fg-ex-info">'+esc(EX_INFO[e.ex])+(e.note?'<div class="fg-ex-info-note">\u203a '+esc(e.note)+'</div>':'')+'</div>':'');
         if(e.lastText) h+='<div class="fg-ex-last">'+esc(e.lastText)+(e.leveledUp?' · <span class="fg-up">level up ↑</span>':'')+'</div>';
         h+='<div class="fg-sets">'+(e.sets.length>1?'<div class="fg-set fg-ctl"><span class="fg-set-n"></span><div class="fg-ex-subcol">'+_sub+'</div><button class="fg-fill fg-fill-in" data-fgfill="'+bi+':'+ei+'" title="Copy set 1 down to the other sets"> \u2913 Fill from current</button><button class="fg-set-check fg-ca-box'+(e.sets.every(s=>s.done)?' done':'')+'" data-fgcheckall="'+bi+':'+ei+'" title="Check all sets">'+(e.sets.every(s=>s.done)?'\u2713':'')+'</button></div>':'')+e.sets.map((s,si)=>{ const w=e.bw?'':'<input class="fg-w" inputmode="decimal" enterkeyhint="done" data-fgw="'+bi+':'+ei+':'+si+'" value="'+esc(s.weight)+'" placeholder="lb">';
           return '<div class="fg-set'+(s.done?' done':'')+'"><span class="fg-set-n">'+(si+1)+'</span>'+w+'<input class="fg-r" inputmode="numeric" enterkeyhint="done" data-fgr="'+bi+':'+ei+':'+si+'" value="'+esc(s.reps)+'" placeholder="reps"><button class="fg-set-check" data-fgset="'+bi+':'+ei+':'+si+'">'+(s.done?'✓':'')+'</button></div>'; }).join('')+'</div>'+'</div>';
@@ -4715,6 +4782,24 @@ let fuelPending=null, fuelMenuData=null, fuelCoachData=null, fuelLoading=null, f
 function fuelSetErr(m){ fuelErr=m; const el=document.getElementById('fuelErr'); if(el){ el.textContent=m||''; el.style.display=m?'block':'none'; } }
 function fuelSetLoading(v){ fuelLoading=v; renderAlchemy(); }
 function aiReady(){ return typeof fetch==='function'; }
+/* One-tap layered diagnosis of the whole AI chain: server → sign-in → key
+   present → key valid → credits. The ?check=1 probe verifies the key against
+   Anthropic server-side, so each verdict names the exact fix. */
+async function fuelTestAI(){ fuelSetErr('🧪 Testing the AI connection…');
+  try{
+    const r0=await fetch('/.netlify/functions/ai'); const j0=await r0.json();
+    if(!j0.keySet){ fuelSetErr('🧪 Server reachable ✓ but ANTHROPIC_API_KEY is NOT set. Netlify → Site configuration → Environment variables → add it, then Deploys → Trigger deploy.'); return; }
+    let tk=null; try{ tk=Cloud.token(); }catch(e){}
+    if(j0.authRequired && !tk){ fuelSetErr('🧪 Server ✓ · key set ✓ — but you are signed OUT. Sign in (Settings → Account & Sync), then retry.'); return; }
+    const h={}; if(tk) h['Authorization']='Bearer '+tk;
+    const r1=await fetch('/.netlify/functions/ai?check=1',{headers:h});
+    if(r1.status===401){ fuelSetErr('🧪 Your sign-in has expired — sign out and back in (Settings → Account & Sync), then retry.'); return; }
+    const j1=await r1.json(); const up=j1.upstream||{};
+    if(up.status>=200&&up.status<300){ fuelSetErr('✅ Everything works — server, sign-in, key, and credits all check out. Text, photo, and menu estimates are live.'); return; }
+    if(up.error&&/credit balance/i.test(up.error)){ fuelSetErr('🧪 The key works but ITS Anthropic account has no credits. Top up THAT account at platform.claude.com → Plans & Billing — or create a key in your funded account, swap it into Netlify env, and Trigger deploy. (Credits and keys are per-account: a top-up in a different account does nothing for this key.)'); return; }
+    if(up.status===401){ fuelSetErr('🧪 Anthropic REJECTED the key — it is invalid or revoked. Create a fresh key (platform.claude.com → API Keys), paste it into Netlify → Environment variables → ANTHROPIC_API_KEY, then Trigger deploy.'); return; }
+    fuelSetErr('🧪 Anthropic answered HTTP '+up.status+(up.error?' — '+up.error:'')+'. Screenshot this and send it to Claude.');
+  }catch(e){ fuelSetErr('🧪 Could not reach the app server at all — check your internet connection and retry.'); } }
 
 async function onFuelPhoto(file){ fuelSetErr(null); fuelSetLoading('photo'); try{ const b64=await fileToJpeg(file); const out=await nutEstImage(b64,'image/jpeg',fuelState().search); if(!out.items||!out.items.length) fuelSetErr((out.questions&&out.questions[0])||'No food detected. Try another angle, or add it manually.'); else { fuelPending={items:out.items,questions:out.questions||[],time:out.time}; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 async function onFuelText(){ const inp=document.getElementById('fuelText'); const v=(inp.value||'').trim(); if(!v) return; const hit=fuelState().cache.find(f=>normName(f.name)===normName(v)); if(hit){ fuelPending={items:[Object.assign({},hit,{confidence:'high'})],questions:[]}; inp.value=''; openReview(); return; } fuelSetErr(null); fuelSetLoading('text'); try{ const out=await nutEstText(v,fuelState().search); if(!out.items||!out.items.length) fuelSetErr("Couldn't find a food in that. Reword and retry."); else { fuelPending={items:out.items,questions:out.questions||[]}; inp.value=''; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
@@ -4890,6 +4975,7 @@ function renderProtocol(){ const list=document.getElementById('protoList'); if(!
       if(e.target.closest('#targetsEdit')){ const tf=document.getElementById('targetsForm'); const tt=fuelTargets(); _tset('tKcal',tt.cal);_tset('tProtein',tt.p);_tset('tCarbs',tt.c);_tset('tFat',tt.f);_tset('tFib',tt.fib); tf.style.display='block'; return; }
       if(e.target.closest('#targetsCancel')){ document.getElementById('targetsForm').style.display='none'; renderAlchemy(); return; }
       if(e.target.closest('#targetsSave')){ saveTargets(); return; }
+      if(e.target.closest('#fuelTestBtn')){ fuelTestAI(); return; }
       if(e.target.closest('#fuelPhotoBtn')){ if(fuelLoading) return; document.getElementById('fuelPhotoCam').click(); return; }
       if(e.target.closest('#fuelPhotoUpBtn')){ if(fuelLoading) return; document.getElementById('fuelPhoto').click(); return; }
       if(e.target.closest('#fuelMenuBtn')){ if(fuelLoading) return; document.getElementById('fuelMenuCam').click(); return; }
