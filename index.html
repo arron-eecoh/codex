@@ -453,6 +453,9 @@
   .fuel-quick-row{display:flex;flex-wrap:wrap;gap:6px}
   .fuel-chip{background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);border-radius:20px;padding:7px 12px;font-size:12px;font-weight:500;transition:.15s}
   .fuel-chip:hover{border-color:var(--ember);color:var(--ink)}
+  .fuel-chip.fuel-usual{border-color:var(--ember);color:var(--ink);font-weight:600}
+  .fuel-chip .fu-n{margin-left:5px;font-size:10px;color:var(--ink-faint);font-weight:500}
+  .fuel-quick-row+.fuel-quick-lab{margin-top:10px}
   .fuel-log{display:flex;flex-direction:column;gap:8px}
   .fuel-empty{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center;color:var(--ink-dim);font-size:13px;line-height:1.6}
   .fuel-entry{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 13px}
@@ -1993,6 +1996,7 @@ function trainingSeed(){
       targets:Object.assign({},NUT_TARGETS),
       days:{},                     // dayKey -> [food entries]
       cache:NUT_SEED.slice(),      // personal food memory
+      freq:{},                     // normName -> {n,last} · how often each food gets logged (powers ⭐ usuals)
       search:true,                 // web lookup toggle
       history:{},                  // dayKey -> true (day sealed)
       dialedHistory:{},            // dayKey -> true (sealed AND on-target)
@@ -2463,7 +2467,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.11-r466';
+const BUILD='2026.08.11-r467';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4718,7 +4722,7 @@ function aiFailMsg(e){ const m=String((e&&e.message)||'');
 async function nutCallAPI(content,useSearch,maxTokens){ const body={model:'claude-sonnet-4-6',max_tokens:maxTokens||1000,messages:[{role:'user',content}]}; if(useSearch) body.tools=[{type:'web_search_20260209',name:'web_search'}]; let lastErr; for(let a=0;a<2;a++){ try{ const data=await aiPost(body); return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n'); }catch(e){ lastErr=e; if(a===0) await new Promise(r=>setTimeout(r,600)); } } throw lastErr; }
 async function nutEstImage(b64,mime,search){ return nutExtractJSON(await nutCallAPI([{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'Identify every food in this photo and estimate macros. Cap at 15 items.\n'+NUT_SCHEMA}],search,2000)); }
 async function nutEstText(desc,search){ return nutExtractJSON(await nutCallAPI([{type:'text',text:'Estimate macros for: "'+desc+'".\n'+NUT_SCHEMA}],search,2000)); }
-async function nutReEst(items,qa,search){ return nutExtractJSON(await nutCallAPI([{type:'text',text:'Revise these macro estimates using the answers.\nCurrent: '+JSON.stringify(items)+'\nAnswers: '+qa+'\n'+NUT_SCHEMA+'\nReturn empty questions now.'}],search)); }
+async function nutReEst(items,qa,search){ const clean=(items||[]).map(it=>{ const o={}; Object.keys(it).forEach(k=>{ if(k[0]!=='_') o[k]=it[k]; }); return o; }); return nutExtractJSON(await nutCallAPI([{type:'text',text:'Revise these macro estimates using the user\'s corrections. Apply everything they mention — ingredient swaps, portion changes, cooking method, items to add or remove.\nCurrent: '+JSON.stringify(clean)+'\nCorrections: '+qa+'\n'+NUT_SCHEMA+'\nReturn empty questions now.'}],search)); }
 async function nutCoach(ctx){
   const prompt=`You are this person's nutrition coach inside their tracker. Be ${NUT_COACH.intensity}: surface at most 2 genuinely useful moves, stay quiet on the rest. No moralizing about treats - budget for balance instead of banning. Always prefer foods THEY already eat. Keep fat skewed unsaturated and protect the protein floor.
 PROFILE: ${JSON.stringify(NUT_PROFILE)}
@@ -4803,11 +4807,14 @@ async function fuelTestAI(){ fuelSetErr('🧪 Testing the AI connection…');
 
 async function onFuelPhoto(file){ fuelSetErr(null); fuelSetLoading('photo'); try{ const b64=await fileToJpeg(file); const out=await nutEstImage(b64,'image/jpeg',fuelState().search); if(!out.items||!out.items.length) fuelSetErr((out.questions&&out.questions[0])||'No food detected. Try another angle, or add it manually.'); else { fuelPending={items:out.items,questions:out.questions||[],time:out.time}; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 async function onFuelText(){ const inp=document.getElementById('fuelText'); const v=(inp.value||'').trim(); if(!v) return; const hit=fuelState().cache.find(f=>normName(f.name)===normName(v)); if(hit){ fuelPending={items:[Object.assign({},hit,{confidence:'high'})],questions:[]}; inp.value=''; openReview(); return; } fuelSetErr(null); fuelSetLoading('text'); try{ const out=await nutEstText(v,fuelState().search); if(!out.items||!out.items.length) fuelSetErr("Couldn't find a food in that. Reword and retry."); else { fuelPending={items:out.items,questions:out.questions||[]}; inp.value=''; openReview(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
-async function onFuelReEst(answers){ fuelSetLoading('reest'); try{ const out=await nutReEst(fuelPending.items,answers,fuelState().search); fuelPending={items:out.items||fuelPending.items,questions:out.questions||[]}; renderReview(); }catch(e){ } fuelSetLoading(null); renderReview(); }
+async function onFuelReEst(answers){ if(!String(answers||'').trim()){ const ta=document.getElementById('fuelAnswers'); if(ta){ ta.placeholder='Type what to fix first, then ↻ Re-estimate…'; ta.focus(); } return; } fuelSetLoading('reest'); try{ const out=await nutReEst(fuelPending.items,answers,fuelState().search); fuelPending={items:out.items||fuelPending.items,questions:out.questions||[]}; renderReview(); }catch(e){ } fuelSetLoading(null); renderReview(); }
+function fuelBumpFreq(a,key){ if(!a.freq||typeof a.freq!=='object') a.freq={}; const q=a.freq[key]=a.freq[key]||{n:0,last:''}; q.n++; q.last=today(); }
+/* Foods logged 3+ times are routine — surface them as one-tap ⭐ usuals, most-logged first */
+function fuelUsuals(){ const a=fuelState(), fq=a.freq||{}; return (a.cache||[]).map((f,i)=>({f:f,i:i,q:fq[normName(f.name)]})).filter(x=>x.q&&x.q.n>=3).sort((x,y)=>(y.q.n-x.q.n)||String(y.q.last).localeCompare(String(x.q.last))).slice(0,6); }
 function fuelCommit(){ if(!fuelPending) return; const log=fuelDay(); const stamp=normTime(fuelPending.time)||nowHM(); const a=fuelState();
   fuelPending.items.forEach(it=>{ fuelScaleItem(it); log.push({id:'f'+Math.random().toString(36).slice(2,9),name:it.name,portion:it.portion,unit:it.unit,time:stamp,cal:+it.cal||0,p:+it.p||0,c:+it.c||0,f:+it.f||0,fib:+it.fib||0,sat:+it.sat||0});
     const key=normName(it.name), rec={name:it.name,portion:it.portion,unit:it.unit,cal:+it.cal||0,p:+it.p||0,c:+it.c||0,f:+it.f||0,fib:+it.fib||0,sat:+it.sat||0};
-    const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); });
+    const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); fuelBumpFreq(a,key); });
   a.cache=a.cache.slice(0,400); fuelPending=null; closeModal('reviewOverlay'); commit(); runFuelCoach(); }
 function fuelDeleteEntry(id){ const a=fuelState(), k=today(); a.days[k]=(a.days[k]||[]).filter(e=>e.id!==id); commit(); }
 function fuelQty(s){ s=String(s==null?'':s).trim(); var m=s.match(/^(\d+(?:\.\d+)?)\s+(\d+)\/(\d+)/); if(m) return (+m[1])+(+m[2])/(+m[3]); var fr=s.match(/^(\d+)\/(\d+)/); if(fr) return (+fr[1])/(+fr[2]); var n=parseFloat(s); return isFinite(n)?n:NaN; }
@@ -4819,7 +4826,7 @@ function fuelQuickAdd(i){ const f=fuelState().cache[i]; if(!f) return; fuelPendi
 async function onFuelMenu(file){ fuelSetErr(null); fuelSetLoading('menu'); try{ const b64=await fileToJpeg(file); const tt=fuelTargetsEff(), tot=fuelTotals(); const remaining={cal:tt.cal-tot.cal,p:tt.p-tot.p,c:tt.c-tot.c,f:tt.f-tot.f}; const out=await nutScanMenu(b64,{remaining,targets:tt,training:trainingDayContext()},fuelState().search); const dishes=out.dishes||out.items||[]; if(!dishes.length) fuelSetErr("Couldn't read dishes off that menu. Try a clearer, closer shot."); else { fuelMenuData={summary:out.summary||'',dishes}; openMenu(); } }catch(e){ fuelSetErr(aiFailMsg(e)); } fuelSetLoading(null); }
 function fuelLogDish(i){ const d=fuelMenuData.dishes[i]; const log=fuelDay(); const a=fuelState();
   const e={id:'f'+Math.random().toString(36).slice(2,9),name:d.name,portion:'1',unit:'serving',time:nowHM(),cal:+d.cal||0,p:+d.p||0,c:+d.c||0,f:+d.f||0,fib:+d.fib||0,sat:+d.sat||0}; log.push(e);
-  const key=normName(d.name), rec={name:d.name,portion:'1',unit:'serving',cal:e.cal,p:e.p,c:e.c,f:e.f,fib:e.fib,sat:e.sat}; const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); a.cache=a.cache.slice(0,400);
+  const key=normName(d.name), rec={name:d.name,portion:'1',unit:'serving',cal:e.cal,p:e.p,c:e.c,f:e.f,fib:e.fib,sat:e.sat}; const idx=a.cache.findIndex(f=>normName(f.name)===key); if(idx>=0)a.cache[idx]=rec; else a.cache.unshift(rec); a.cache=a.cache.slice(0,400); fuelBumpFreq(a,key);
   fuelMenuData=null; closeModal('menuOverlay'); commit(); runFuelCoach(); }
 async function runFuelCoach(){ if(!aiReady()) return; const log=fuelDay(), tt=fuelTargetsEff(), t=fuelTotals(log); const remaining={cal:tt.cal-t.cal,p:tt.p-t.p,c:tt.c-t.c,f:tt.f-t.f,fib:tt.fib-t.fib}; fuelCoachLoading=true; renderCoach(); try{ const out=await nutCoach({training:trainingDayContext(),targets:tt,totals:t,remaining,time:nowHM(),entries:log.map(e=>({name:e.name,time:e.time,cal:e.cal,p:e.p,c:e.c,f:e.f})),foods:fuelState().cache.slice(0,25).map(f=>({name:f.name,portion:f.portion,unit:f.unit,cal:f.cal,p:f.p,c:f.c,f:f.f}))}); fuelCoachData=out; }catch(e){ fuelCoachData={headline:aiFailMsg(e),cards:[]}; } fuelCoachLoading=false; renderCoach(); }
 
@@ -4849,7 +4856,13 @@ function renderCoach(){ const el=document.getElementById('fuelCoach'); if(!el) r
   const _th=document.getElementById('fuelCoachThread'); if(_th) _th.scrollTop=_th.scrollHeight; }
 function renderFuelLog(){ const el=document.getElementById('fuelLog'); if(!el) return; const log=fuelDay(); if(!log.length){ el.innerHTML='<div class="fuel-empty">Nothing logged yet today.<br>Snap your first meal, or pick a saved food.</div>'; return; }
   el.innerHTML=log.slice().reverse().map(e=>'<div class="fuel-entry"><div class="fuel-entry-time">'+esc(e.time||'')+'</div><div class="fuel-entry-main"><div class="fuel-entry-name">'+esc(e.name)+'</div><div class="fuel-entry-sub">'+esc(e.portion||'')+' '+esc(e.unit||'')+' · '+Math.round(e.p)+'p '+Math.round(e.c)+'c '+Math.round(e.f)+'f</div></div><div class="fuel-entry-cal">'+Math.round(e.cal)+'</div><button class="fuel-entry-del" data-fueldel="'+e.id+'" title="Remove">✕</button></div>').join(''); }
-function renderFuelQuick(){ const el=document.getElementById('fuelQuick'); if(!el) return; const _a=fuelState(); if(_a.cache&&!_a._pnorm){ _a.cache.forEach(it=>{ const np=fuelNormPortion(it.portion,it.unit); it.portion=np.portion; it.unit=np.unit; }); _a._pnorm=true; } const c=fuelState().cache||[]; if(!c.length){ el.innerHTML=''; return; } el.innerHTML='<div class="fuel-quick-lab">Quick add (saved foods)</div><div class="fuel-quick-row">'+c.slice(0,8).map((f,i)=>'<button class="fuel-chip" data-fuelquick="'+i+'">'+esc(f.name)+'</button>').join('')+'</div>'; }
+function renderFuelQuick(){ const el=document.getElementById('fuelQuick'); if(!el) return; const _a=fuelState(); if(_a.cache&&!_a._pnorm){ _a.cache.forEach(it=>{ const np=fuelNormPortion(it.portion,it.unit); it.portion=np.portion; it.unit=np.unit; }); _a._pnorm=true; } const c=fuelState().cache||[]; if(!c.length){ el.innerHTML=''; return; }
+  const us=fuelUsuals(), used={}; us.forEach(x=>{ used[x.i]=1; });
+  let h='';
+  if(us.length) h+='<div class="fuel-quick-lab">⭐ Your usuals</div><div class="fuel-quick-row">'+us.map(x=>'<button class="fuel-chip fuel-usual" data-fuelquick="'+x.i+'">'+esc(x.f.name)+'<span class="fu-n">×'+x.q.n+'</span></button>').join('')+'</div>';
+  const rest=c.map((f,i)=>({f:f,i:i})).filter(x=>!used[x.i]).slice(0,8);
+  if(rest.length) h+='<div class="fuel-quick-lab">Quick add (saved foods)</div><div class="fuel-quick-row">'+rest.map(x=>'<button class="fuel-chip" data-fuelquick="'+x.i+'">'+esc(x.f.name)+'</button>').join('')+'</div>';
+  el.innerHTML=h; }
 function fuelFocusBadge(){ const dl=fuelFocusDeltas(); if(!dl.length) return ''; return '<div class="fs-focus" title="Your Forge focus is shifting today\u2019s macro targets">⚙️ '+esc(forgeFocus())+' focus — targets '+esc(dl.join(' · '))+'</div>'; }
 function renderFuelStatus(){ const el=document.getElementById('fuelStatus'); if(!el) return; const a=fuelState(), t=today(), tt=fuelTargetsEff(), tot=fuelTotals();
   const sealed=!!a.history[t], dialed=isDialedIn(tot,tt), dstreak=dialedStreakNow(), cheats=a.cheats||0;
@@ -4881,7 +4894,8 @@ function renderAlchemy(){ const a=state.training.alchemy, t=today();
 function openReview(){ renderReview(); document.getElementById('reviewOverlay').classList.add('open'); }
 function fuelStepRow(i,it){ return [['cal','kcal',25],['p','protein g',5],['c','carbs g',5],['f','fat g',2]].map(r=>{ const k=r[0],lab=r[1],st=r[2]; return '<div class="fuel-step-row"><label>'+lab+'</label><div class="fuel-stepper"><button data-fuelstep="'+i+':'+k+':-'+st+'">−</button><input type="number" inputmode="decimal" data-fuelnum="'+i+':'+k+'" value="'+(+it[k]||0)+'"><button data-fuelstep="'+i+':'+k+':'+st+'">+</button></div></div>'; }).join(''); }
 function renderReview(){ const el=document.getElementById('reviewBody'); if(!el||!fuelPending) return; let h='';
-  if(fuelPending.questions&&fuelPending.questions.length){ h+='<div class="fuel-q"><div class="fuel-q-lab">Pin down the portion</div>'+fuelPending.questions.map(q=>'<div class="fuel-q-item">• '+esc(q)+'</div>').join('')+'<textarea id="fuelAnswers" placeholder="Answer here…"></textarea><button class="btn-ghost fuel-wide" id="fuelReEst">'+(fuelLoading==='reest'?'⏳ Re-estimating…':'↻ Re-estimate')+'</button></div>'; }
+  const _qs=fuelPending.questions||[];
+  h+='<div class="fuel-q">'+(_qs.length?'<div class="fuel-q-lab">Pin down the portion</div>'+_qs.map(q=>'<div class="fuel-q-item">• '+esc(q)+'</div>').join(''):'<div class="fuel-q-lab">Notice something off? Tell me, I’ll redo the math</div>')+'<textarea id="fuelAnswers" placeholder="'+(_qs.length?'Answer here…':'e.g. it was brown rice · double the chicken · cooked in butter · missed the side of ranch…')+'"></textarea><button class="btn-ghost fuel-wide" id="fuelReEst">'+(fuelLoading==='reest'?'⏳ Re-estimating…':'↻ Re-estimate')+'</button></div>';
   fuelPending.items.forEach(it=>{ if(it._bm==null){ const np=fuelNormPortion(it.portion,it.unit); it.portion=np.portion; it.unit=np.unit; } fuelStampBase(it); });
   h+=fuelPending.items.map((it,i)=>'<div class="fuel-ritem"><div class="fuel-ritem-top"><input class="fuel-ritem-name" data-fuelname="'+i+'" value="'+esc(it.name||'')+'"><button class="fuel-entry-del" data-fuelremove="'+i+'" title="Remove">🗑</button></div><div class="fuel-ritem-portion"><input type="number" inputmode="decimal" step="any" class="fuel-qty" data-fuelportion="'+i+'" value="'+esc(it.portion||'')+'" placeholder="qty"><span class="fuel-x">×</span><input class="fuel-unit" data-fuelunit="'+i+'" value="'+esc(it.unit||'')+'" placeholder="unit (whole eggs, tbsp, g…)">'+(it.confidence?'<span class="fuel-conf c-'+esc(it.confidence)+'">'+esc(it.confidence)+'</span>':'')+'</div><div class="fuel-steps">'+fuelStepRow(i,it)+'</div></div>').join('');
   h+='<button class="btn-solid fuel-primary" id="fuelCommit">✓ Log '+fuelPending.items.length+' item'+(fuelPending.items.length!==1?'s':'')+'</button>';
@@ -5305,6 +5319,7 @@ function migrateState(){
     }
     if(!a.days||typeof a.days!=='object') a.days={};
     if(!Array.isArray(a.cache)) a.cache=NUT_SEED.slice();
+    if(!a.freq||typeof a.freq!=='object') a.freq={};
     if(typeof a.search!=='boolean') a.search=true;
     if(!a.dialedHistory||typeof a.dialedHistory!=='object') a.dialedHistory={};
     if(!a.cheatHistory||typeof a.cheatHistory!=='object') a.cheatHistory={};
