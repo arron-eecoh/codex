@@ -62,6 +62,33 @@ module.exports = async function(C){
   it.cal=210; C.fuelRebase(it); it.portion='1'; C.fuelScaleItem(it);
   ok('manual correction re-baselines (210@1.5 → 140@1)', it.cal===140);
 
+  // ---- review sheet: the revise box never disappears ----
+  C.fuelPending={items:[{name:'Chicken bowl',portion:'1',unit:'bowl',cal:600,p:45,c:60,f:18}],questions:[]};
+  C.renderReview();
+  const rb=(global.__els['reviewBody']||{}).innerHTML||'';
+  ok('no questions → revise box still rendered (textarea + re-estimate)', /id="fuelAnswers"/.test(rb) && /id="fuelReEst"/.test(rb) && /Notice something off/.test(rb));
+  C.fuelPending={items:[{name:'Chicken bowl',portion:'1',unit:'bowl',cal:600,p:45,c:60,f:18}],questions:['How big was the bowl?']};
+  C.renderReview();
+  const rb2=(global.__els['reviewBody']||{}).innerHTML||'';
+  ok('with questions → same box, question-first framing', /Pin down the portion/.test(rb2) && /id="fuelAnswers"/.test(rb2));
+  ok('empty revision is a no-op nudge, not an API call', /Type what to fix first/.test(String(C.onFuelReEst)));
+  ok('re-estimate prompt applies corrections and strips private props', /corrections/.test(String(C.nutReEst)) && /k\[0\]!=='_'/.test(String(C.nutReEst)));
+
+  // ---- ⭐ usuals: routine foods surface as one-tap chips ----
+  C.s=baseState(); const A=C.fuelState();
+  C.fuelBumpFreq(A,'x'); C.fuelBumpFreq(A,'x');
+  ok('fuelBumpFreq counts and stamps', A.freq.x.n===2 && !!A.freq.x.last);
+  A.cache.unshift({name:'Protein Shake',portion:'1',unit:'scoop',cal:120,p:24,c:3,f:1,fib:0,sat:0});
+  A.freq[C.normName('Protein Shake')]={n:5,last:'2026-01-01'};
+  A.freq[C.normName(A.cache[1].name)]={n:2,last:'2026-01-02'};
+  C.renderFuelQuick();
+  const fq=(global.__els['fuelQuick']||{}).innerHTML||'';
+  ok('3+ logs → ⭐ usual chip with count, wired to quick add', /Your usuals/.test(fq) && /fuel-usual/.test(fq) && /×5/.test(fq) && /data-fuelquick="0"/.test(fq));
+  ok('2 logs stays out of usuals but keeps quick add', !new RegExp('fuel-usual[^>]*>'+A.cache[1].name).test(fq) && /Quick add \(saved foods\)/.test(fq));
+  ok('both commit paths feed the frequency tracker', /fuelBumpFreq\(a,key\)/.test(String(C.fuelCommit)) && /fuelBumpFreq\(a,key\)/.test(String(C.fuelLogDish)));
+  delete A.freq; C.migrateState();
+  ok('old states gain freq{} additively on load', A.freq && typeof A.freq==='object');
+
   // ---- coach thread containment ----
   C.s=baseState();
   // set chat via C if exposed; render and check capping structure exists in markup
