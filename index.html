@@ -644,6 +644,7 @@
   .fg-feel-row.set .fg-feel-val{color:var(--ember)}
   .fg-feel-hint{font-weight:400;color:var(--ink-faint);font-size:10.5px;margin-left:6px}
   .fg-ex-dis{opacity:.6;flex:0 0 auto}
+  .fg-set-n .fg-ex-dis{margin:0;padding:0;font-size:15px;min-height:44px}
   .fuel-test{opacity:.75;font-size:12.5px;margin-top:2px}
   .fuel-btnrow{display:flex;gap:8px;align-items:stretch}
   .fuel-btnrow .fuel-primary,.fuel-btnrow .fuel-wide{flex:1;min-width:0}
@@ -2467,7 +2468,7 @@ const SUBNAV={
  shop:[['offerings','🌿 Offerings'],['desires','✨ Desires'],['rewards','🎁 Rewards']]
 };
 const SUB_DEFAULT={character:'hero',virtues:'bloom',skills:'lines',quests:'active',shop:'rewards'};
-const BUILD='2026.08.11-r467';
+const BUILD='2026.08.11-r468';
 try{ document.documentElement.setAttribute('data-build',BUILD); console.log('Codex build',BUILD); }catch(e){}
 let subSel={};
 function subCur(p){ return subSel[p]||SUB_DEFAULT[p]||SUBNAV[p][0][0]; }
@@ -4564,9 +4565,9 @@ function renderForgeSession(){ _fgNextCache=null; const f=fgState(), a=f.active;
       const _col=(bi in fgBlockCollapse)?fgBlockCollapse[bi]:_bd;
       h+='<div class="fg-block-lab fg-block-tap" data-fgblocktoggle="'+bi+'"><span>'+esc(b.name)+'</span>'+(_bd?'<span class="fg-block-donebadge">✓ done</span>':'')+(_be?'<span class="fg-energy" title="Block energy (of ~100)">⚡ '+_be+'</span>':'')+'<span class="fg-block-chev">'+(_col?'▸':'▾')+'</span></div>';
       if(_col) return;
-      b.exercises.forEach((e,ei)=>{ const _nx=fgNextTarget(); const _isNext=_nx&&_nx.bi===bi&&_nx.ei===ei; const _sub=(EX_INFO[e.ex]?'<button class="fg-ex-i" data-fgexinfo="'+bi+':'+ei+'" aria-label="How to do this">ⓘ how-to</button>':'')+'<button class="fg-ex-i fg-ex-dis" data-fgdislike="'+bi+':'+ei+'" aria-label="Remove this exercise from your program">👎</button>'+(e.note?'<span class="fg-ex-note-in">'+esc(e.note)+'</span>':''); h+='<div class="fg-ex'+(_isNext?' up-next':'')+'" data-fgexanchor="'+bi+':'+ei+'"><div class="fg-ex-top"><span class="fg-ex-name">'+esc(e.ex)+'</span><span class="fg-ex-target">'+esc(e.target)+' '+esc(e.unit)+(e.unit==='sec'?'<button class="fg-hold-timer" data-fgholdtimer="'+bi+':'+ei+'" title="Start hold timer">⏱ '+(fgParseSecs(e.target)||30)+'s</button>':'')+'</span></div>'+((_sub&&e.sets.length<=1)?'<div class="fg-ex-sub">'+_sub+'</div>':'')+((EX_INFO[e.ex]&&fgInfoOpen.has(bi+':'+ei))?'<div class="fg-ex-info">'+esc(EX_INFO[e.ex])+(e.note?'<div class="fg-ex-info-note">\u203a '+esc(e.note)+'</div>':'')+'</div>':'');
+      b.exercises.forEach((e,ei)=>{ const _nx=fgNextTarget(); const _isNext=_nx&&_nx.bi===bi&&_nx.ei===ei; const _dis='<button class="fg-ex-i fg-ex-dis" data-fgdislike="'+bi+':'+ei+'" aria-label="Remove this exercise from your program">👎</button>'; const _info=(EX_INFO[e.ex]?'<button class="fg-ex-i" data-fgexinfo="'+bi+':'+ei+'" aria-label="How to do this">ⓘ how-to</button>':'')+(e.note?'<span class="fg-ex-note-in">'+esc(e.note)+'</span>':''); const _sub=_info+_dis; h+='<div class="fg-ex'+(_isNext?' up-next':'')+'" data-fgexanchor="'+bi+':'+ei+'"><div class="fg-ex-top"><span class="fg-ex-name">'+esc(e.ex)+'</span><span class="fg-ex-target">'+esc(e.target)+' '+esc(e.unit)+(e.unit==='sec'?'<button class="fg-hold-timer" data-fgholdtimer="'+bi+':'+ei+'" title="Start hold timer">⏱ '+(fgParseSecs(e.target)||30)+'s</button>':'')+'</span></div>'+((_sub&&e.sets.length<=1)?'<div class="fg-ex-sub">'+_sub+'</div>':'')+((EX_INFO[e.ex]&&fgInfoOpen.has(bi+':'+ei))?'<div class="fg-ex-info">'+esc(EX_INFO[e.ex])+(e.note?'<div class="fg-ex-info-note">\u203a '+esc(e.note)+'</div>':'')+'</div>':'');
         if(e.lastText) h+='<div class="fg-ex-last">'+esc(e.lastText)+(e.leveledUp?' · <span class="fg-up">level up ↑</span>':'')+'</div>';
-        h+='<div class="fg-sets">'+(e.sets.length>1?'<div class="fg-set fg-ctl"><span class="fg-set-n"></span><div class="fg-ex-subcol">'+_sub+'</div><button class="fg-fill fg-fill-in" data-fgfill="'+bi+':'+ei+'" title="Copy set 1 down to the other sets"> \u2913 Fill from current</button><button class="fg-set-check fg-ca-box'+(e.sets.every(s=>s.done)?' done':'')+'" data-fgcheckall="'+bi+':'+ei+'" title="Check all sets">'+(e.sets.every(s=>s.done)?'\u2713':'')+'</button></div>':'')+e.sets.map((s,si)=>{ const w=e.bw?'':'<input class="fg-w" inputmode="decimal" enterkeyhint="done" data-fgw="'+bi+':'+ei+':'+si+'" value="'+esc(s.weight)+'" placeholder="lb">';
+        h+='<div class="fg-sets">'+(e.sets.length>1?'<div class="fg-set fg-ctl"><span class="fg-set-n">'+_dis+'</span><div class="fg-ex-subcol">'+_info+'</div><button class="fg-fill fg-fill-in" data-fgfill="'+bi+':'+ei+'" title="Copy set 1 down to the other sets"> \u2913 Fill from current</button><button class="fg-set-check fg-ca-box'+(e.sets.every(s=>s.done)?' done':'')+'" data-fgcheckall="'+bi+':'+ei+'" title="Check all sets">'+(e.sets.every(s=>s.done)?'\u2713':'')+'</button></div>':'')+e.sets.map((s,si)=>{ const w=e.bw?'':'<input class="fg-w" inputmode="decimal" enterkeyhint="done" data-fgw="'+bi+':'+ei+':'+si+'" value="'+esc(s.weight)+'" placeholder="lb">';
           return '<div class="fg-set'+(s.done?' done':'')+'"><span class="fg-set-n">'+(si+1)+'</span>'+w+'<input class="fg-r" inputmode="numeric" enterkeyhint="done" data-fgr="'+bi+':'+ei+':'+si+'" value="'+esc(s.reps)+'" placeholder="reps"><button class="fg-set-check" data-fgset="'+bi+':'+ei+':'+si+'">'+(s.done?'✓':'')+'</button></div>'; }).join('')+'</div>'+'</div>';
       }); });
   } else if(a.kind==='circuit'){ h+='<div class="fg-field"><label>Circuit</label><select id="fgCircuit" class="qsel">'+F_CIRCUITS.map(c=>'<option'+(a.circuitName===c.name?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select></div>';

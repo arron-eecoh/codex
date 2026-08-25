@@ -134,7 +134,8 @@ module.exports = async function(C){
   const src=require('fs').readFileSync(global.__APPFILE,'utf8');
   ok('returning to the training TAB mid-session scrolls to the live exercise', /dataset\.tab==='training'[\s\S]{0,200}fgScrollNext\(\)/.test(src));
   ok('switching trainSub back to Forge mid-session scrolls too', /trainview==='forge'[\s\S]{0,120}fgScrollNext\(\)/.test(src));
-  ok('ⓘ + note live in a vertical block BESIDE Fill (inside the ctl row)', /fg-ex-subcol">'\+_sub\+'<\/div><button class="fg-fill fg-fill-in/.test(src));
+  ok('ⓘ + note live in a vertical block BESIDE Fill (inside the ctl row)', /fg-ex-subcol">'\+_info\+'<\/div><button class="fg-fill fg-fill-in/.test(src));
+  ok('👎 sits in the set-number column of the ctl row, not stacked under ⓘ', /fg-ctl"><span class="fg-set-n">'\+_dis\+'<\/span>/.test(src) && /\.fg-set-n \.fg-ex-dis\{/.test(src));
   ok('standalone sub line only when no ctl row exists (single-set)', /_sub&&e\.sets\.length<=1/.test(src));
   ok('long notes ellipsize to a single line', /fg-ex-note-in\{[^}]*text-overflow:ellipsis/.test(src));
   ok('full coaching cue preserved inside the ⓘ expansion', /fg-ex-info-note/.test(src) && /esc\(EX_INFO\[e\.ex\]\)\+\(e\.note/.test(src));
